@@ -24,6 +24,7 @@ def parse_cmd_arguments():  # allows for arguments
 args = parse_cmd_arguments().parse_args()
 _reset_cfg = args.reset_config
 _no_prompt = args.no_prompt
+_test_run = args.test_run
 
 def setup(InvalidToken=False, cfg=None):
 
@@ -40,25 +41,26 @@ def setup(InvalidToken=False, cfg=None):
     else:
         config = cfg
 
-    if InvalidToken:
-        print('The Token is incorrect')
-    else:
-        print('Enter your bot Token')
-    config["TOKEN"] = input('>')
+    if not _test_run:
+        if InvalidToken:
+            print('The Token is incorrect')
+        else:
+            print('Enter your bot Token')
+        config["TOKEN"] = input('>')
 
-    while not config["PREFIX"]:
-        print('\nEnter the prefix you want to use.\n'
-              'You can setup multiple prefixes by putting a space between them')
+        while not config["PREFIX"]:
+            print('\nEnter the prefix you want to use.\n'
+                  'You can setup multiple prefixes by putting a space between them')
 
-        config["PREFIX"] = input('>').split()
-        if not config["PREFIX"]:
-            print("Empty command prefixes are invalid.")
+            config["PREFIX"] = input('>').split()
+            if not config["PREFIX"]:
+                print("Empty command prefixes are invalid.")
 
-    if not config['DESCRIPTION']:
-        print('\nEnter a description for your bot.\n'
-              'It will show up with the help message')
+        if not config['DESCRIPTION']:
+            print('\nEnter a description for your bot.\n'
+                  'It will show up with the help message')
 
-        config["DESCRIPTION"] = input('>')
+            config["DESCRIPTION"] = input('>')
 
     path, ext  = splitext('data/bot/config.json')
     tmp_file = "{}.{}.tmp".format(path, randint(1000, 9999))
@@ -87,12 +89,102 @@ def check_folders():
             print("Creating " + folder + " folder...")
             makedirs(folder)
 
+async def send_help(ctx):
+    helpm = await bot.formatter.format_help_for(ctx, ctx.command)
+    for m in helpm:
+        await ctx.send(m)
+
+
+class Checks:
+
+    def __init(self):
+        pass
+
+    def is_owner(self):
+        def _check(ctx):
+            return ctx.message.author.id == bot.owner.id
+        return commands.check(_check)
+
+checks = Checks()
+
+def preparebot():
+
+    bot = commands.Bot(command_prefix=config['PREFIX'],
+                       description=config['DESCRIPTION'],
+                       pm_help=None)
+
+    async def info():
+        info = await bot.application_info()
+        bot.owner = info.owner
+        bot.client_id = info.id
+        bot.oauth_url = "https://discordapp.com/oauth2/authorize?client_id={}&scope=bot".format(bot.client_id)
+
+        bot.formatter = commands.formatter.HelpFormatter()
+
+    @commands.command()
+    @checks.is_owner()
+    async def load(ctx, *, msg):
+        """Load a module."""
+        try:
+            if (exists("cogs/{}.py".format(msg)) or exists("cogs/{}.pyw".format(msg))):
+                bot.load_extension("cogs.{}".format(msg))
+            else:
+                raise ImportError("No cog named '{}'".format(msg))
+        except Exception as e:
+            await ctx.send('Failed to load module: `{}.py`'.format(msg))
+            print('Failed to load module: `{}.py`'.format(msg))
+            print('{}: {}'.format(type(e).__name__, e))
+        else:
+            await ctx.send('Loaded module: `{}.py`'.format(msg))
+
+    @bot.event
+    async def on_ready():
+        await info()
+        guilds = len(bot.guilds)
+        prefixes = config['PREFIX']
+        channels = len([x for x in bot.get_all_channels()])
+        users = len(set(bot.get_all_members()))
+
+        msg = '\n' + str(bot.user.name)
+        msg += '\n' + '{}#{}\n'.format(str(bot.owner.name),
+                                       str(bot.owner.discriminator))
+
+        msg += "\nPrefix" + ('es' if len(prefixes) > 1 else '') + ': ' + ", ".join(prefixes) + '\n'
+        msg += '\nConnected to:'
+        msg += '\n{} guild'.format(guilds) + ('s' if guilds > 1 else '')
+        msg += '\n{} channels'.format(channels) + ('s' if channels > 1 else '')
+        msg += '\n{} user'.format(users) + ('s' if users > 1 else '')
+
+
+        msg += '\n\nInvite:\n{}'.format(bot.oauth_url)
+        print(msg)
+        bot.add_command(load)
+
+    @bot.event
+    async def on_command_error(ctx, error):
+        if isinstance(error, (commands.MissingRequiredArgument, commands.BadArgument)):
+            await send_help(ctx)
+        elif isinstance(error, commands.CheckFailure):
+            pass
+
+    return bot
+
 if __name__ == '__main__':
 
     check_folders()
     print("Starting up...")
 
     while True:
+
+        if _test_run:
+            try:
+                setup()
+                print("Test run complete")
+                exit(0)
+            except Exception as e:
+                print('{}\n{}\n'.format(type(e).__name__, e))
+                print("Test failed")
+                exit(1)
 
         if _reset_cfg:
             config = setup()
@@ -103,90 +195,8 @@ if __name__ == '__main__':
             except IOError:
                 config = setup()
 
-        bot = commands.Bot(command_prefix=config['PREFIX'],
-                           description=config['DESCRIPTION'],
-                           pm_help=None)
-
-        async def info():
-            info = await bot.application_info()
-            bot.owner = info.owner
-            bot.client_id = info.id
-            bot.oauth_url = "https://discordapp.com/oauth2/authorize?client_id={}&scope=bot".format(bot.client_id)
-
-            bot.formatter = commands.formatter.HelpFormatter()
-
-        async def send_help(ctx):
-            helpm = await bot.formatter.format_help_for(ctx, ctx.command)
-            for m in helpm:
-                await ctx.send(m)
-
-        def is_owner():
-            def _check(ctx):
-                return ctx.message.author.id == bot.owner.id
-            return commands.check(_check)
-
-        @bot.event
-        async def on_ready():
-            await info()
-            guilds = len(bot.guilds)
-            prefixes = config['PREFIX']
-            channels = len([x for x in bot.get_all_channels()])
-            users = len(set(bot.get_all_members()))
-
-            msg = '\n------------'
-            msg += '\n' + str(bot.user.name)
-            msg += '\n' + '{}#{}\n'.format(str(bot.owner.name),
-                                           str(bot.owner.discriminator))
-
-            if len(prefixes) > 1:
-                msg += "\nPrefix: " + ", ".join(prefixes)
-            else:
-                msg += '\nPrefixes: ' + ', '.join(prefixes) + '\n'
-            msg += '\nConnected to:'
-
-            if guilds > 1:
-                msg += '\n{} guilds'.format(guilds)
-            else:
-                msg += '\n{} guild'.format(guilds)
-
-            if channels > 1:
-                msg += '\n{} channel'.format(channels)
-            else:
-                msg += '\n{} channels'.format(channels)
-
-            if users > 1:
-                msg += '\n{} user'.format(users)
-            else:
-                msg += '\n{} users'.format(users)
-
-            msg += '\n\nInvite:\n{}'.format(bot.oauth_url)
-            print(msg)
-            bot.add_command(load)
-
-        @bot.event
-        async def on_command_error(ctx, error):
-            if isinstance(error, commands.MissingRequiredArgument) or isinstance(error, commands.BadArgument):
-                await send_help(ctx)
-            elif isinstance(error, commands.CheckFailure):
-                pass
-
-        @commands.command()
-        @is_owner()
-        async def load(ctx, *, msg):
-            """Load a module."""
-            try:
-                if (exists("cogs/{}.py".format(msg)) or exists("cogs/{}.pyw".format(msg))):
-                    bot.load_extension("cogs.{}".format(msg))
-                else:
-                    raise ImportError("No cog named '{}'".format(msg))
-            except Exception as e:
-                await ctx.send('Failed to load module: `{}.py`'.format(msg))
-                print('Failed to load module: `{}.py`'.format(msg))
-                print('{}: {}'.format(type(e).__name__, e))
-            else:
-                await ctx.send('Loaded module: `{}.py`'.format(msg))
-
         try:
+            bot = preparebot()
             bot.run(config['TOKEN'])
         except discord.errors.LoginFailure:
             setup(True, config)
