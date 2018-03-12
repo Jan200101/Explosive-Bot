@@ -7,18 +7,18 @@ Explosive-Bot is a fully modular discord bot designed to be compatible with cogs
 Currently Explosive-Bot is still in the works and no bot specific features have been added yet.
 Check the todo list to see what bots are planned to be added
 
-### Prerequisites
+### Requirements
 
-Explosive-Bot runs on discord.py without and other Prerequisites.
-Third party cogs may change that
+Explosive-Bot runs on discord.py without and other Requirements.
+Third party cogs may add further requirements
 
 To install discord.py v1.0.0 you have to run
 
 ```
-pip install git+https://github.com/Rapptz/discord.py.git@rewrite#egg=discord.py[voice]'
+pip install git+https://github.com/Rapptz/discord.py.git@rewrite#egg=discord.py[voice]
 ```
 
-Debian based systems have following dependencies:
+Debian based systems may have the following dependencies:
 ```
 libffi-dev libnacl-dev python3-dev
 ```
