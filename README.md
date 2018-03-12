@@ -1,4 +1,4 @@
-# Project Title
+# Explosive-Bot
 
 Explosive-Bot is a fully modular discord bot designed to be compatible with cogs from other bots.
 
