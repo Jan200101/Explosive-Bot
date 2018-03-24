@@ -1,23 +1,28 @@
 import discord
 from aiohttp.client_exceptions import ClientConnectorError
-from json import load as loadjson, dump, decoder
+from json import load, dump, decoder
 from argparse import ArgumentParser
 from discord.ext import commands
 from random import randint
+from sys import modules
 from os import replace, makedirs
 from os.path import splitext, exists
 
-def parse_cmd_arguments():  # allows for arguments
-    parser = ArgumentParser(description="Discord-Selfbot")
+
+def parse_cmd_arguments():
+    parser = ArgumentParser(description="Explosive-Bot")
     parser.add_argument("-t", "--test-run",  # test run flag for Travis
                         action="store_true",
                         help="Makes the bot quit before trying to log in")
     parser.add_argument("--reset-config",  # Reset bot config
                         action="store_true",
                         help="Reruns the setup")
-    parser.add_argument("--no-prompt",  # Allows for Testing of mac related code
+    parser.add_argument("--no-prompt",
                         action="store_true",
                         help="Supresses all errors")
+    parser.add_argument("--no-run",
+                        action="store_true",
+                        help="Runs all bot related code but never the bot")
     return parser
 
 
@@ -25,6 +30,7 @@ args = parse_cmd_arguments().parse_args()
 _reset_cfg = args.reset_config
 _no_prompt = args.no_prompt
 _test_run = args.test_run
+_no_run = args.no_run
 
 def setup(InvalidToken=False, cfg=None):
 
@@ -68,7 +74,7 @@ def setup(InvalidToken=False, cfg=None):
         dump(config, tmp, indent=4, sort_keys=True, separators=(',', ' : '))
     try:
         with open(tmp_file, 'r', encoding='utf-8') as tmp:
-            config = loadjson(tmp)
+            config = load(tmp)
     except decoder.JSONDecodeError:
         print("Attempted to write file {} but JSON "
               "integrity check on tmp file has failed. "
@@ -83,7 +89,7 @@ def setup(InvalidToken=False, cfg=None):
     return config
 
 def check_folders():
-    folders = ("data", "data/bot/", "cogs", "cogs/utils")
+    folders = ("data", "data/bot/", "cogs")
     for folder in folders:
         if not exists(folder):
             print("Creating " + folder + " folder...")
@@ -94,24 +100,26 @@ async def send_help(ctx):
     for m in helpm:
         await ctx.send(m)
 
-
-class Checks:
-
-    def __init(self):
-        pass
-
-    def is_owner(self):
-        def _check(ctx):
-            return ctx.message.author.id == bot.owner.id
-        return commands.check(_check)
-
-checks = Checks()
-
 def preparebot():
-
+    global bot
     bot = commands.Bot(command_prefix=config['PREFIX'],
                        description=config['DESCRIPTION'],
                        pm_help=None)
+
+    from compatibility import __init__
+
+    class Checks:
+        def __init__(self):
+            pass
+
+        def _check_owner(self, ctx):
+            return ctx.message.author.id == bot.owner.id
+        def owner(self):
+            return commands.check(self._check_owner)
+
+        is_owner = owner
+
+    checks = Checks()
 
     async def info():
         info = await bot.application_info()
@@ -121,21 +129,61 @@ def preparebot():
 
         bot.formatter = commands.formatter.HelpFormatter()
 
-    @commands.command()
-    @checks.is_owner()
+    @commands.group()
+    @checks.owner()
     async def load(ctx, *, msg):
-        """Load a module."""
+        if ctx.invoked_subcommand is "load":
+            pages = bot.formatter.format_help_for(ctx, ctx.command)
+            for page in pages:
+                await ctx.send(page)
+
+    @load.command(name="cog")
+    @checks.owner()
+    async def _norm(ctx, *, msg):
+        """Load a cog structured like any other"""
+        await loadcog(ctx, "cogs/{}.py".format(msg), msg)
+
+    @load.command(name="red3cog", pass_context=True)
+    async def _red3(ctx, *, msg):
+        """Load a Red Version 3 cog"""
+        await loadcog(ctx, "cogs/{}/__init__.py".format(msg), msg)
+
+    async def loadcog(ctx, cog, msg):
         try:
-            if (exists("cogs/{}.py".format(msg)) or exists("cogs/{}.pyw".format(msg))):
-                bot.load_extension("cogs.{}".format(msg))
+            if exists(cog):
+                bot.load_extension(cog)
             else:
                 raise ImportError("No cog named '{}'".format(msg))
         except Exception as e:
-            await ctx.send('Failed to load module: `{}.py`'.format(msg))
-            print('Failed to load module: `{}.py`'.format(msg))
+            await ctx.send('Failed to load module: `{}`'.format(msg))
+            print('Failed to load module: `{}`'.format(msg))
             print('{}: {}'.format(type(e).__name__, e))
         else:
-            await ctx.send('Loaded module: `{}.py`'.format(msg))
+            await ctx.send('Loaded module: `{}`'.format(msg))
+
+    @commands.command(pass_context=True)
+    @checks.owner()
+    async def unload(ctx, *, msg):
+        """Unload a module"""
+        try:
+            if (exists("cogs/{}.py".format(msg)) or exists("cogs/{}.pyw".format(msg))):
+                bot.unload_extension("cogs.{}".format(msg))
+            else:
+                raise ImportError("No module named '{}'".format(msg))
+        except Exception as e:
+            await ctx.send('Failed to unload module: `{}.py`'.format(msg))
+            print('Failed to unload module: `{}.py`'.format(msg))
+            print('{}: {}'.format(type(e).__name__, e))
+        else:
+            await ctx.send('Unloaded module: `{}.py`'.format(msg))
+
+    @commands.command()
+    @checks.owner()
+    async def exit(ctx):
+        """Load a module."""
+        await ctx.send('Bye')
+        await bot.logout()
+
 
     @bot.event
     async def on_ready():
@@ -159,9 +207,13 @@ def preparebot():
         msg += '\n\nInvite:\n{}'.format(bot.oauth_url)
         print(msg)
         bot.add_command(load)
+        bot.add_command(unload)
+        bot.add_command(exit)
 
     @bot.event
     async def on_command_error(ctx, error):
+        if _no_prompt:
+            return
         if isinstance(error, (commands.MissingRequiredArgument, commands.BadArgument)):
             await send_help(ctx)
         elif isinstance(error, commands.CheckFailure):
@@ -191,13 +243,14 @@ if __name__ == '__main__':
         else:
             try:
                 with open('data/bot/config.json', 'r', encoding='utf-8') as f:
-                    config = loadjson(f)
+                    config = load(f)
             except IOError:
                 config = setup()
 
         try:
             bot = preparebot()
-            bot.run(config['TOKEN'])
+            if not _no_run:
+                bot.run(config['TOKEN'])
         except discord.errors.LoginFailure:
             setup(True, config)
             continue
