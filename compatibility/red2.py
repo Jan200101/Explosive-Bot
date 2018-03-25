@@ -1,83 +1,26 @@
+from os import listdir
 from sys import modules
-from random import randint
-from json import load, dump, decoder
-from os import replace
-from os.path import splitext
 
-from __main__ import bot
-from discord.ext import commands
+import __main__
 
-class DataIO():
+__main__.settings = __main__.bot.settings
+from repos.red2.cogs.utils import *
 
-    def save_json(self, filename, data):
-        """Atomically save a JSON file given a filename and a dictionary."""
-        path, ext = splitext(filename)
-        tmp_file = "{}.{}.tmp".format(path, randint(1000, 9999))
-        with open(tmp_file, 'w', encoding='utf-8') as f:
-            dump(data, f, indent=4,sort_keys=True,separators=(',',' : '))
-        try:
-            with open(tmp_file, 'r', encoding='utf-8') as f:
-                data = load(f)
-        except decoder.JSONDecodeError:
-            print("Attempted to write file {} but JSON "
-                  "integrity check on tmp file has failed. "
-                  "The original file is unaltered."
-                  "".format(filename))
-            return False
-        except Exception as e:
-            print('A issue has occured saving ' + filename + '.\n'
-                  'Traceback:\n'
-                  '{0} {1}'.format(str(e), e.args))
-            return False
-
-        replace(tmp_file, filename)
-        return True
-
-    def load_json(self, filename):
-        """Load a JSON file and return a dictionary."""
-        try:
-            with open(filename, 'r', encoding='utf-8') as f:
-                data = load(f)
-            return data
-        except Exception as e:
-            print('A issue has occured loading ' + filename + '.\n'
-                  'Traceback:\n'
-                  '{0} {1}'.format(str(e), e.args))
-            return {}
-
-    def is_valid_json(self, filename):
-        """Verify that a JSON file exists and is readable.
-           Take in a filename and return a boolean."""
-        try:
-            with open(filename, 'r', encoding='utf-8') as f:
-                data = load(f)
-            return True
-        except (FileNotFoundError, decoder.JSONDecodeError):
-            return False
-        except Exception as e:
-            print('A issue has occured validating ' + filename + '.\n'
-                  'Traceback:\n'
-                  '{0} {1}'.format(str(e), e.args))
-            return False
-
-class Checks:
-    def __init__(self):
-        pass
-
-    def _check_owner(self, ctx):
-        return ctx.message.author.id == bot.owner.id
-    def owner(self):
-        return commands.check(self._check_owner)
-
-    is_owner = owner
-
-checks = Checks()
+listutils = [x[:-3] for x in listdir('compatibility/.repos/red2/cogs/utils') if not '_' in x]
 
 class cogs:
     class utils:
+        __init__ = __init__
+        chat_formatting = chat_formatting
         checks = checks
-        class dataIO:
-            dataIO = DataIO()
+        converters = converters
+        dataIO = dataIO
+        settings = settings
 
 modules['cogs.utils'] = cogs.utils
+
+modules['cogs.utils.chat_formatting'] = cogs.utils.chat_formatting
+modules['cogs.utils.checks'] = cogs.utils.checks
+modules['cogs.utils.converters'] = cogs.utils.converters
 modules['cogs.utils.dataIO'] = cogs.utils.dataIO
+modules['cogs.utils.settings'] = cogs.utils.settings
