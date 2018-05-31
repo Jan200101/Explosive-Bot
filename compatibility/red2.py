@@ -1,26 +1,43 @@
-from os import listdir
+import __main__
+from discord.ext import commands
+from os import makedirs
+from os.path import exists
 from sys import modules
 
-import __main__
+from __main__ import bot
 
-__main__.settings = __main__.bot.settings
-from repos.red2.cogs.utils import *
+import compatibility.repos.red2.cogs.utils as red2
 
-listutils = [x[:-3] for x in listdir('compatibility/.repos/red2/cogs/utils') if not '_' in x]
+modules["cogs.utils"] = red2
 
-class cogs:
-    class utils:
-        __init__ = __init__
-        chat_formatting = chat_formatting
-        checks = checks
-        converters = converters
-        dataIO = dataIO
-        settings = settings
+def _get_variable(name):
+    stack = inspect.stack()
+    try:
+        for frames in stack:
+            try:
+                frame = frames[0]
+                current_locals = frame.f_locals
+                if name in current_locals:
+                    return current_locals[name]
+            finally:
+                del frame
+    finally:
+        del stack
 
-modules['cogs.utils'] = cogs.utils
+async def send_message(destination, content, *args, **kwargs):
 
-modules['cogs.utils.chat_formatting'] = cogs.utils.chat_formatting
-modules['cogs.utils.checks'] = cogs.utils.checks
-modules['cogs.utils.converters'] = cogs.utils.converters
-modules['cogs.utils.dataIO'] = cogs.utils.dataIO
-modules['cogs.utils.settings'] = cogs.utils.settings
+    await destination.send(content, *args, **kwargs)
+
+async def say(content, *args, **kwargs):
+
+    print(_get_variable('_internal_channel'))
+    
+bot.send_message = send_message
+bot.say = say
+
+def check_folders():
+    folders = ("data", "data/red", "data/red/V2")
+    for folder in folders:
+        if not exists(folder):
+            print("Creating " + folder + " folder...")
+            makedirs(folder)
