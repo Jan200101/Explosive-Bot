@@ -11,7 +11,7 @@ from os.path import splitext, exists
 
 def parse_cmd_arguments():
     parser = ArgumentParser(description="Explosive-Bot")
-    parser.add_argument("-t", "--test-run",  # test run flag for Travis
+    parser.add_argument("--test-run",  # test run flag for Travis
                         action="store_true",
                         help="Makes the bot quit before trying to log in")
     parser.add_argument("--reset-config",  # Reset bot config
