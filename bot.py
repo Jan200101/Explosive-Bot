@@ -131,8 +131,9 @@ def preparebot():
 
     @commands.group()
     @checks.owner()
-    async def load(ctx, *, msg):
-        if ctx.invoked_subcommand is "load":
+    async def load(ctx):
+        ctx.send(ctx.invoked_subcommand)
+        if ctx.invoked_subcommand:
             pages = bot.formatter.format_help_for(ctx, ctx.command)
             for page in pages:
                 await ctx.send(page)
@@ -141,16 +142,17 @@ def preparebot():
     @checks.owner()
     async def _norm(ctx, *, msg):
         """Load a cog structured like any other"""
-        await loadcog(ctx, "cogs/{}.py".format(msg), msg)
+        await loadcog(ctx, "cogs.{}".format(msg), msg, "cogs/{}.py".format(msg))
 
-    @load.command(name="red3cog", pass_context=True)
+    @load.command(name="cog3", pass_context=True)
     async def _red3(ctx, *, msg):
         """Load a Red Version 3 cog"""
-        await loadcog(ctx, "cogs/{}/__init__.py".format(msg), msg)
+        await loadcog(ctx, "cogs.{}".format(msg), msg, "cogs/{}/__init__.py".format(msg))
 
-    async def loadcog(ctx, cog, msg):
+    # 
+    async def loadcog(ctx, cog, msg, check):
         try:
-            if exists(cog):
+            if exists(check):
                 bot.load_extension(cog)
             else:
                 raise ImportError("No cog named '{}'".format(msg))
@@ -200,7 +202,7 @@ def preparebot():
         msg += "\nPrefix" + ('es' if len(prefixes) > 1 else '') + ': ' + ", ".join(prefixes) + '\n'
         msg += '\nConnected to:'
         msg += '\n{} guild'.format(guilds) + ('s' if guilds > 1 else '')
-        msg += '\n{} channels'.format(channels) + ('s' if channels > 1 else '')
+        msg += '\n{} channel'.format(channels) + ('s' if channels > 1 else '')
         msg += '\n{} user'.format(users) + ('s' if users > 1 else '')
 
 
@@ -249,7 +251,9 @@ if __name__ == '__main__':
 
         try:
             bot = preparebot()
-            if not _no_run:
+            if _no_run:
+                print("Bot start skipped")
+            else:
                 bot.run(config['TOKEN'])
         except discord.errors.LoginFailure:
             setup(True, config)
