@@ -4,7 +4,9 @@ os:
 
 matrix:
   allow_failures:
-    - os: osx
+    os: osx
+    python:
+      - "3.7-dev"
 
 language:
   - python
