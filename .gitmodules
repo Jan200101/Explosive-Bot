@@ -1,6 +1,6 @@
 [submodule "compatibility/repos/red2"]
 	path = compatibility/repos/red2
-	url = https://github.com:Cog-Creators/Red-DiscordBot.git
+	url = https://github.com/Cog-Creators/Red-DiscordBot.git
 	branch = develop
 [submodule "compatibility/repos/red3"]
 	path = compatibility/repos/red3
