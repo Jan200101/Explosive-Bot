@@ -1,6 +1,7 @@
 os:
   - linux
-  - windows
+  allow_failures:
+    - os: osx
 language: python
 python:
   - "3.5.4"
