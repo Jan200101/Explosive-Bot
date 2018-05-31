@@ -22,7 +22,7 @@ install:
 
 script:
   - python -m compileall ./bot.py
-  - python -m compileall ./compatibility/*
+  - python -m compileall ./compatibility/*.py
   - python ./bot.py --test-run
 
 cache:
