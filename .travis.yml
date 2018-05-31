@@ -1,16 +1,28 @@
 os:
   - linux
+  - osx
+
+matrix:
   allow_failures:
     - os: osx
-language: python
+
+language:
+  - python
+
 python:
   - "3.5.4"
+
 install:
   - pip install -r requirements.txt
+
 script:
   - python -m compileall ./bot.py
   - python -m compileall ./compatibility/*
   - python ./bot.py --test-run
-cache: pip
+
+cache:
+  - pip
+
 notifications:
-  email: false
+  email:
+    - false
