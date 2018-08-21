@@ -3,7 +3,7 @@ from discord.ext import commands
 from os import makedirs
 from os.path import exists
 from sys import modules
-
+import inspect
 from __main__ import bot
 
 import compatibility.repos.red2.cogs.utils as red2
@@ -28,9 +28,14 @@ async def send_message(destination, content, *args, **kwargs):
 
     await destination.send(content, *args, **kwargs)
 
-async def say(content, *args, **kwargs):
+async def say(self, *args, **kwargs):
+    stack = inspect.stack()
+    print("I ran say")
+    print(True if stack else False)
+    print(stack)
+    print(_get_variable("ctx"))
 
-    print(_get_variable('_internal_channel'))
+    #destination.send(*args, **kwargs)
     
 bot.send_message = send_message
 bot.say = say

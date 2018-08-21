@@ -1,18 +1,10 @@
 os:
   - linux
-  - osx
-
-matrix:
-  allow_failures:
-    - os: osx
-    - python: "3.7-dev"
 
 language:
   - python
 
 python:
-  - "3.5"
-  - "3.5-dev"
   - "3.6"
   - "3.7-dev"
 
@@ -23,6 +15,8 @@ install:
 script:
   - python -m compileall ./bot.py
   - python -m compileall ./compatibility/*.py
+  - pyflakes ./bot.py
+  - find ./addons -iname "*.py" | xargs pyflakes
   - python ./bot.py --test-run
 
 cache:

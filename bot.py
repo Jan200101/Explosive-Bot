@@ -76,12 +76,12 @@ def setup(InvalidToken=False, cfg=None):
         with open(tmp_file, 'r', encoding='utf-8') as tmp:
             config = load(tmp)
     except decoder.JSONDecodeError:
-        print("Attempted to write file {} but JSON "
+        print("Attempted to load file {} but JSON "
               "integrity check on tmp file has failed. "
               "The original file is unaltered."
               "".format('data/bot/config.json'))
     except Exception as e:
-        print('A issue has occured saving ' + 'data/bot/config.json' + '.\n'
+        print('A issue has occured loading ' + 'data/bot/config.json' + '.\n'
               'Traceback:\n'
               '{0} {1}'.format(str(e), e.args))
 
@@ -132,9 +132,8 @@ def preparebot():
     @commands.group()
     @checks.owner()
     async def load(ctx):
-        ctx.send(ctx.invoked_subcommand)
         if ctx.invoked_subcommand:
-            pages = bot.formatter.format_help_for(ctx, ctx.command)
+            pages = await bot.formatter.format_help_for(ctx, ctx.command)
             for page in pages:
                 await ctx.send(page)
 
@@ -149,7 +148,6 @@ def preparebot():
         """Load a Red Version 3 cog"""
         await loadcog(ctx, "cogs.{}".format(msg), msg, "cogs/{}/__init__.py".format(msg))
 
-    # 
     async def loadcog(ctx, cog, msg, check):
         try:
             if exists(check):
