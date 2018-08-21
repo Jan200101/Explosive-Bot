@@ -4,3 +4,4 @@ aiohttp<3.4.0,>=3.3.0
 aiohttp_json_rpc
 jsonrpcserver
 colorama
+pyflakes
