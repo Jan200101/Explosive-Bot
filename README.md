@@ -4,7 +4,7 @@ Explosive-Bot is a fully modular discord bot designed to be compatible with cogs
 
 # WIP
 This repository is going to be dead on ice most of the time
-But do not worry I do update it in my local repo and push changes that are stable
+feel free to send pull request or submit issues
 
 ## Supported bots
 
@@ -36,11 +36,10 @@ A step by step guide is in the making.
 
 
 ### TODO
-- [ ]  Cog Manager
-- [ ]  Download manger
-- [ ]  back porting Red V.2 features
+
+- [ ]  reworking main structure
+- [ ]  porting Discord.py@async functions
 - [ ]  porting Red V.3 features
-- [ ]  porting appu's Discord Selfbot features
 
 ## Authors
 
