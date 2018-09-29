@@ -1,5 +1,7 @@
 from traceback import format_exception
+from os import listdir
 from json import load, dump
+
 
 from discord.ext import commands
 
@@ -7,6 +9,13 @@ from data.config import prefix, token
 
 
 bot = commands.Bot(command_prefix=prefix)
+
+
+class Cog:
+    def __init__(self):
+        self.all = []
+        self.loaded = {}
+        self.unloaded = []
 
 
 @bot.event
@@ -31,30 +40,53 @@ async def on_command_error(ctx, error):
         )
         print(exception_log)
 
+
 @bot.event
 async def on_ready():
 
+    bot.cog = Cog
+    bot.cog.all = [x for x in listdir("cogs") if x != "__pycache__"]
 
     try:
-        addons = load(open("config/addons.json"))
+        cogs = load(open("data/cogs.json"))
     except:
-        addons = []
-        with open("config/addons.json", "w") as config:
-            dump(addons, config, indent=4, sort_keys=True, separators=(',', ':'))
+        cogs = [
+            "core"
+        ]
 
-    for addon in addons:
+        with open("data/cogs.json", "w") as config:
+            dump(cogs, config)
+
+    temp = cogs.copy()
+
+    for cog in cogs:
         try:
-            bot.load_extension("addons." + addon)
-            print("{} addon loaded.".format(addon))
+            bot.load_extension("cogs." + cog)
+            bot.cog.loaded.update({cog: "cogs." + cog})
         except Exception as e:
-            print("Failed to load {} :\n{} : {}".format(
-                addon, type(e).__name__, e))
+            print("Failed to load {}:\n{} : {}".format(
+                cog, type(e).__name__, e))
+            cogs.remove(cog)
+            print(cogs)
 
-    print("{} has started\nServers: {}"
-          "".format(bot.user.name, len(bot.guild)))
+    if temp != cogs:
+        with open("data/cogs.json", "w") as config:
+            dump(cogs, config)
+
+    bot.cog.unloaded = [
+        x for x in bot.cog.all if not x in list(bot.cog.loaded)]
+
+    print("{} has started\n"
+          "{} Servers\n"
+          "{} Cogs\n"
+          "{} loaded\n"
+          "prefixes:\n{}"
+          "".format(bot.user.name, len(bot.guilds),
+                    len(bot.cog.all), len(bot.cog.loaded), " ".join(prefix)))
 
 if __name__ == "__main__":
     try:
         bot.run(token)
     except KeyboardInterrupt:
         bot.logout()
+        print("\n")

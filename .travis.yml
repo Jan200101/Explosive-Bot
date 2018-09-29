@@ -1,0 +1,25 @@
+os:
+  - linux
+
+language:
+  - python
+
+python:
+  - "3.6"
+
+install:
+  - pip install -r requirements.txt
+  - pip install pyflakes
+
+script:
+  - python -m compileall ./main.py
+  - python -m compileall ./cogs/*.py
+  - pyflakes ./main.py
+  - find ./cogs -iname "*.py" | xargs pyflakes
+
+cache:
+  - pip
+
+notifications:
+  email:
+    - false
