@@ -1,21 +1,19 @@
 from traceback import format_exception
 from os import listdir
 from json import load, dump
-
-
 from discord.ext import commands
 
-from data.config import prefix, token
+from data.token import token
 
+try:
+    config = load(open("data/config.json"))
+except:
+    config = {"prefix": ["!"], "avatar":""}
 
-bot = commands.Bot(command_prefix=prefix)
+    with open("data/config.json", "w") as conf:
+        dump(config, conf)
 
-
-class Cog:
-    def __init__(self):
-        self.all = []
-        self.loaded = {}
-        self.unloaded = []
+bot = commands.Bot(command_prefix=config['prefix'])
 
 
 @bot.event
@@ -43,38 +41,36 @@ async def on_command_error(ctx, error):
 
 @bot.event
 async def on_ready():
-
-    bot.cog = Cog
-    bot.cog.all = [x for x in listdir("cogs") if x != "__pycache__"]
-
     try:
         cogs = load(open("data/cogs.json"))
     except:
-        cogs = [
-            "core"
-        ]
+        cogs = {"all": ["cogs.core"], "loaded": {"core": "cogs.core"}}
 
-        with open("data/cogs.json", "w") as config:
-            dump(cogs, config)
+        with open("data/cogs.json", "w") as conf:
+            dump(cogs, conf)
 
     temp = cogs.copy()
 
-    for cog in cogs:
+    cogs['all'] = list(set(cogs['all'] + ['cogs.' + x[:-3] for x in listdir("cogs")
+                                          if x != "__pycache__" and x.endswith(".py")]))
+
+    for cog in cogs['all']:
         try:
-            bot.load_extension("cogs." + cog)
-            bot.cog.loaded.update({cog: "cogs." + cog})
+            __import__(cog)
+        except ModuleNotFoundError:
+            cogs['all'].remove(cog)
+
+    for cog in list(cogs['loaded'].items()):
+        try:
+            bot.load_extension(cog[1])
         except Exception as e:
+            cogs['loaded'].pop(cog[0])
             print("Failed to load {}:\n{} : {}".format(
-                cog, type(e).__name__, e))
-            cogs.remove(cog)
-            print(cogs)
+                cog[0], type(e).__name__, e))
 
     if temp != cogs:
-        with open("data/cogs.json", "w") as config:
-            dump(cogs, config)
-
-    bot.cog.unloaded = [
-        x for x in bot.cog.all if not x in list(bot.cog.loaded)]
+        with open("data/cogs.json", "w") as conf:
+            dump(cogs, conf)
 
     print("{} has started\n"
           "{} Servers\n"
@@ -82,7 +78,7 @@ async def on_ready():
           "{} loaded\n"
           "prefixes:\n{}"
           "".format(bot.user.name, len(bot.guilds),
-                    len(bot.cog.all), len(bot.cog.loaded), " ".join(prefix)))
+                    len(cogs['all']), len(cogs['loaded']), " ".join(config["prefix"])))
 
 if __name__ == "__main__":
     try:

@@ -1,1 +1,1 @@
-["core"]
+{"all": ["cogs.core"], "loaded": {"core": "cogs.core"}}
