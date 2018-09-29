@@ -1,4 +1,4 @@
-from os import getcwd, execl
+from os import execl
 from sys import argv, executable
 from json import load, dump
 from discord.ext import commands
