@@ -8,7 +8,7 @@ from data.token import token
 try:
     config = load(open("data/config.json"))
 except:
-    config = {"prefix": ["!"], "avatar":""}
+    config = {"prefix": ["!"], "avatar": ""}
 
     with open("data/config.json", "w") as conf:
         dump(config, conf)
