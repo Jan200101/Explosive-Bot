@@ -9,8 +9,9 @@ The repository includes a Module to allow the loading of [Red-Discordbot V3](htt
 ## Requirements
 
 To run Explosive-Bot only discord.py 1.0.0a and Python 3.6 or greater is required
-Every Module has its own requirements which are not installed automatically
+
+Modules come with their own requirements that need to be installed
 
 ## License
 
-This project is licensed under the GNU General Public License v3.0 - see the [LICENSE](LICENSE) file for details
+This project is licensed under the GNU General Public License v3.0
