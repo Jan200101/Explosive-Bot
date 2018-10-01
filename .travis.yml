@@ -1,6 +1,9 @@
 os:
   - linux
 
+git:
+  submodules: false
+  
 language:
   - python
 
