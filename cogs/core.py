@@ -1,3 +1,4 @@
+from traceback import format_exception
 from importlib import import_module
 from os import execl
 from sys import argv, executable
@@ -49,6 +50,7 @@ class Core:
             self.bot.unload_extension("cogs." + cog)
             self.bot.load_extension("cogs." + cog)
             self.cogs['loaded'].update({cog: "cogs." + cog})
+            self.bot.logger.info(cog + " loaded")
             with open("data/cogs.json", "w") as config:
                 dump(self.cogs, config)
             await ctx.send(cog + " loaded")
@@ -56,9 +58,10 @@ class Core:
             await ctx.send("Cog not found")
             return
         except Exception as error:
-            await ctx.send("Failed to load {}:\n{} : {}".format(
-                cog, type(error).__name__, error))
-            return
+            self.bot.logger.warn("Failed to load {}: {}".format(cog[0], "".join(
+                format_exception(type(error), error, error.__traceback__))))
+            print("Failed to load {} :\n{} : {}".format(
+                  cog, type(error).__name__, error))
 
     @commands.command()
     @checks.is_owner()
@@ -72,11 +75,13 @@ class Core:
         try:
             self.bot.unload_extension(self.cogs['loaded'][cog])
             self.cogs['loaded'].pop(cog)
+            self.bot.logger.info(cog + " unloaded")
             with open("data/cogs.json", "w") as config:
                 dump(self.cogs, config)
             await ctx.send(cog + " unloaded")
         except KeyError:
             self.bot.unload_extension("cogs." + cog)
+            self.bot.logger.info(cog + " unload attempted")
             await ctx.send(cog + " not loaded, attempting unload anyways")
 
     @commands.group()
@@ -97,13 +102,15 @@ class Core:
         try:
             import_module('modules.{}.init'.format(module))
             self.botmodules['loaded'].append(module)
+            self.bot.logger.info(module + " loaded")
             with open("data/modules.json", "w") as conf:
                 dump(self.botmodules, conf)
             await ctx.send(module + " loaded")
         except Exception as error:
-            await ctx.send("Failed to load {}:\n{} : {}".format(
+            self.bot.logger.warn("A error occured in {}: {}".format(module, "".join(
+                format_exception(type(error), error, error.__traceback__))))
+            await ctx.send("A error occured in {}:\n{} : {}".format(
                 module, type(error).__name__, error))
-            return
 
     @modules.group(name="unload")
     @checks.is_owner()
@@ -115,6 +122,7 @@ class Core:
 
         try:
             self.botmodules['loaded'].remove(module)
+            self.bot.logger.info(module + " unloaded")
             with open("data/modules.json", "w") as conf:
                 dump(self.botmodules, conf)
             await ctx.send(module + " remove from autoloading\nRestart for it to take affect")
