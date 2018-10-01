@@ -12,12 +12,8 @@ install:
   - pip install pyflakes
 
 script:
-  - python -m compileall ./main.py
-  - python -m compileall ./cogs/*.py
-  - python -m compileall ./cogs/utils/*.py
-  - pyflakes ./main.py
-  - find ./cogs -iname "*.py" | xargs pyflakes
-  - find ./cogs/utils -iname "*.py" | xargs pyflakes
+  - find . | grep -E "\.py$" | xargs python -m compileall
+  - find . | grep -E "\.py$" | xargs pyflakes
 
 cache:
   - pip
