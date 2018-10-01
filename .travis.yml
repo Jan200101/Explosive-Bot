@@ -14,8 +14,10 @@ install:
 script:
   - python -m compileall ./main.py
   - python -m compileall ./cogs/*.py
+  - python -m compileall ./cogs/utils/*.py
   - pyflakes ./main.py
   - find ./cogs -iname "*.py" | xargs pyflakes
+  - find ./cogs/utils -iname "*.py" | xargs pyflakes
 
 cache:
   - pip
