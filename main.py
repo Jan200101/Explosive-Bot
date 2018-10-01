@@ -116,8 +116,7 @@ async def on_ready():
           "prefixes:\n{}"
           "".format(bot.user.name, len(bot.guilds), len(botmodules['all']),
                     len(botmodules['loaded']), len(cogs['all']),
-                    len(cogs['loaded']), " ".join(config["prefix"]))
-          )
+                    len(cogs['loaded']), " ".join(config["prefix"])))
 
 
 def prepare():
@@ -191,5 +190,5 @@ if __name__ == "__main__":
         if not args.no_run:
             bot.run(config['token'])
     except Exception as error:
-        bot.logger.warn("Bot terminated: {}".format("".join(format_exception(type(error), error, error.__traceback__))))
-
+        bot.logger.warn("Bot terminated: {}".format(
+            "".join(format_exception(type(error), error, error.__traceback__))))
