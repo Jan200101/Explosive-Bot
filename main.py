@@ -66,46 +66,13 @@ async def on_command_error(ctx, error):
 
 @bot.event
 async def on_ready():
-    # Set Variables
     info = await bot.application_info()
 
     bot.owner = info.owner.id
     bot.client_id = info.owner
 
-    # Load Modules
-    # Cogs may depend on a Module so always load them first
-    botmodules = load(open("data/modules.json"))
-
-    for module in botmodules['loaded']:
-        try:
-            # TODO: load modules as python module
-            import_module('modules.{}.init'.format(module))
-        except Exception as error:
-            bot.logger.warn("A error occured in {}: {}".format(module, "".join(
-                format_exception(type(error), error, error.__traceback__))))
-            if args.concise:
-                print("A error occured in {}:\n{}".format(module, "".join(
-                    format_exception(type(error), error, error.__traceback__))))
-            else:
-                print("A error occured in {}:\n{} : {}".format(
-                    module, type(error).__name__, error))
-
-    # Load Cogs
-    cogs = load(open("data/cogs.json"))
-
-    for cog in list(cogs['loaded'].items()):
-        try:
-            bot.load_extension(cog[1])
-        except Exception as error:
-            cogs['loaded'].pop(cog[0])
-            bot.logger.warn("Failed to load {}: {}".format(cog[0], "".join(
-                format_exception(type(error), error, error.__traceback__))))
-            if args.concise:
-                print("Failed to load {}:\n{}".format(cog[0], "".join(
-                    format_exception(type(error), error, error.__traceback__))))
-            else:
-                print("Failed to load {} :\n{} : {}".format(
-                    cog, type(error).__name__, error))
+    cogs = loadmodules()
+    botmodules = loadcogs()
 
     # Finish Startup
     bot.logger.info("Bot started")
@@ -117,6 +84,46 @@ async def on_ready():
           "".format(bot.user.name, len(bot.guilds), len(botmodules['all']),
                     len(botmodules['loaded']), len(cogs['all']),
                     len(cogs['loaded']), " ".join(config["prefix"])))
+
+
+def loadmodules():
+    botmodules = load(open("data/modules.json"))
+
+    for module in botmodules['loaded']:
+        try:
+            # TODO: load modules as python module
+            import_module('modules.{}.init'.format(module))
+            bot.logger.info(module + " loaded")
+        except Exception as error:
+            bot.logger.warn("A error occured in {}: {}".format(module, "".join(
+                format_exception(type(error), error, error.__traceback__))))
+            if args.concise:
+                print("A error occured in {}:\n{}".format(module, "".join(
+                    format_exception(type(error), error, error.__traceback__))))
+            else:
+                print("A error occured in {}:\n{} : {}".format(
+                    module, type(error).__name__, error))
+    return botmodules
+
+
+def loadcogs():
+    cogs = load(open("data/cogs.json"))
+
+    for cog in list(cogs['loaded'].items()):
+        try:
+            bot.load_extension(cog[1])
+            bot.logger.info(cog[0] + " loaded")
+        except Exception as error:
+            cogs['loaded'].pop(cog[0])
+            bot.logger.warn("Failed to load {}: {}".format(cog[0], "".join(
+                format_exception(type(error), error, error.__traceback__))))
+            if args.concise:
+                print("Failed to load {}:\n{}".format(cog[0], "".join(
+                    format_exception(type(error), error, error.__traceback__))))
+            else:
+                print("Failed to load {} :\n{} : {}".format(
+                    cog, type(error).__name__, error))
+    return cogs
 
 
 def prepare():
@@ -190,5 +197,8 @@ if __name__ == "__main__":
         if not args.no_run:
             bot.run(config['token'])
     except Exception as error:
-        bot.logger.warn("Bot terminated: {}".format(
+        bot.logger.warn("Error on exit: {}".format(
             "".join(format_exception(type(error), error, error.__traceback__))))
+    finally:
+        bot.logger.info("Bot stopped")
+        print("")

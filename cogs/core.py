@@ -56,6 +56,7 @@ class Core:
             await ctx.send(cog + " loaded")
         except ModuleNotFoundError:
             await ctx.send("Cog not found")
+            self.bot.logger.info(cog + " not found")
             return
         except Exception as error:
             self.bot.logger.warn("Failed to load {}: {}".format(cog[0], "".join(
@@ -125,12 +126,14 @@ class Core:
             self.bot.logger.info(module + " unloaded")
             with open("data/modules.json", "w") as conf:
                 dump(self.botmodules, conf)
-            await ctx.send(module + " remove from autoloading\nRestart for it to take affect")
+            await ctx.send(module + " removed from autoloading\nRestart for it to take affect")
         except ValueError:
             if module in self.botmodules['all']:
                 await ctx.send(module + " is not loaded")
+                self.bot.logger.info(module + " not loaded")
             else:
                 await ctx.send("No such module")
+                self.bot.logger.info(module + " not found")
 
     @commands.group(name="set")
     @checks.is_owner()
@@ -152,6 +155,7 @@ class Core:
         with open("data/config.json", "w") as conf:
             dump(self.config, conf)
 
+        self.bot.logger.info("Prefixes set to {}".format(self.config['prefix']))
         await ctx.send("Prefix set\nRestart to apply it")
 
     @commands.command(name="exit", aliases=["shutdown"])
@@ -160,6 +164,7 @@ class Core:
         """Shutdown the bot"""
 
         await ctx.send("Bye")
+        self.bot.logger.info("Bot shutdown via command by {}".format(ctx.message.author))
         await self.bot.logout()
 
     @commands.command()
@@ -168,6 +173,7 @@ class Core:
         """Restart the bot"""
 
         await ctx.send("Restarting...")
+        self.bot.logger.info("Bot restart via command by {}".format(ctx.message.author))
         execl(executable, 'python', "main.py", *argv[1:])
 
 
