@@ -13,50 +13,51 @@ class Core:
     def __init__(self, bot):
         self.bot = bot
 
-    @commands.command()
+        self.cogs = load(open("data/cogs.json"))
+        self.botmodules = load(open("data/modules.json"))
+        self.config = load(open("data/config.json"))
+
+    @commands.command(name="cogs")
     @checks.is_owner()
-    async def cogs(self, ctx):
+    async def _cogs(self, ctx):
         """
         Show loaded and unloaded cogs
         loaded cogs show the name they were assigned by a load function
         unloaded cogs show known cogs. that exist
         """
-        cogs = load(open("data/cogs.json"))
 
-        loaded = ", ".join(cogs['loaded'])
+        loaded = ", ".join(self.cogs['loaded'])
         unloaded = ", ".join(
-            [y[5:] for y in cogs['all'] if not y[5:] in cogs['loaded']])
+            [y[5:] for y in self.cogs['all'] if not y[5:] in self.cogs['loaded']])
 
-        message = ("+ Loaded\n"
+        content = ("+ Loaded\n"
                    "{}\n"
                    "- Unloaded\n"
                    "{}"
                    "".format(loaded, unloaded)
                    )
 
-        for x in ["```diff\n" + message[i:i + 1989] + "```" for i in range(0, len(message), 1989)]:
-            await ctx.send(x)
+        for message in [content[i:i + 1989] for i in range(0, len(content), 1989)]:
+            await ctx.send("```diff\n" + message + "```")
 
     @commands.command(aliases=["reload"])
     @checks.is_owner()
     async def load(self, ctx, *, cog: str):
         """Load a cog"""
 
-        cogs = load(open("data/cogs.json"))
-
         try:
             self.bot.unload_extension("cogs." + cog)
             self.bot.load_extension("cogs." + cog)
-            cogs['loaded'].update({cog: "cogs." + cog})
+            self.cogs['loaded'].update({cog: "cogs." + cog})
             with open("data/cogs.json", "w") as config:
-                dump(cogs, config)
+                dump(self.cogs, config)
             await ctx.send(cog + " loaded")
         except ModuleNotFoundError:
             await ctx.send("Cog not found")
             return
-        except Exception as e:
+        except Exception as error:
             await ctx.send("Failed to load {}:\n{} : {}".format(
-                cog, type(e).__name__, e))
+                cog, type(error).__name__, error))
             return
 
     @commands.command()
@@ -64,17 +65,15 @@ class Core:
     async def unload(self, ctx, *, cog: str):
         """Unload a cog"""
 
-        cogs = load(open("data/cogs.json"))
-
         if cog == "core":
             await ctx.send("Cannot unload core")
             return
 
         try:
-            self.bot.unload_extension(cogs['loaded'][cog])
-            cogs['loaded'].pop(cog)
+            self.bot.unload_extension(self.cogs['loaded'][cog])
+            self.cogs['loaded'].pop(cog)
             with open("data/cogs.json", "w") as config:
-                dump(cogs, config)
+                dump(self.cogs, config)
             await ctx.send(cog + " unloaded")
         except KeyError:
             self.bot.unload_extension("cogs." + cog)
@@ -95,16 +94,15 @@ class Core:
     async def moduleload(self, ctx, *, module: str):
         """Load a module"""
 
-        botmodules = load(open("data/modules.json"))
-
         try:
             import_module('modules.{}.init'.format(module))
-            botmodules['loaded'].append(module)
+            self.botmodules['loaded'].append(module)
             with open("data/modules.json", "w") as conf:
-                dump(botmodules, conf)
+                dump(self.botmodules, conf)
             await ctx.send(module + " loaded")
-        except Exception as e:
-            await ctx.send("Failed to load {}:\n{} : {}".format(module, type(e).__name__, e))
+        except Exception as error:
+            await ctx.send("Failed to load {}:\n{} : {}".format(
+                module, type(error).__name__, error))
             return
 
     @modules.group(name="unload")
@@ -115,15 +113,13 @@ class Core:
         Requires restarting the bot to take affect
         """
 
-        botmodules = load(open("data/modules.json"))
-
         try:
-            botmodules['loaded'].remove(module)
+            self.botmodules['loaded'].remove(module)
             with open("data/modules.json", "w") as conf:
-                dump(botmodules, conf)
+                dump(self.botmodules, conf)
             await ctx.send(module + " remove from autoloading\nRestart for it to take affect")
         except ValueError:
-            if module in botmodules['all']:
+            if module in self.botmodules['all']:
                 await ctx.send(module + " is not loaded")
             else:
                 await ctx.send("No such module")
@@ -141,13 +137,12 @@ class Core:
     @settings.command()
     @checks.is_owner()
     async def prefix(self, ctx, *, prefix: str):
-        """Change the prefix"""
+        """Set the prefix"""
 
-        config = load(open("data/config.json"))
-        config['prefix'] = prefix.split()
+        self.config['prefix'] = prefix.split()
 
         with open("data/config.json", "w") as conf:
-            dump(config, conf)
+            dump(self.config, conf)
 
         await ctx.send("Prefix set\nRestart to apply it")
 

@@ -2,7 +2,14 @@ from os import makedirs
 from os.path import exists
 from sys import modules
 
-import modules.redv3.repo.redbot as red3
+
+class RepoMissing(Exception):
+    pass
+
+try:
+    import modules.redv3.repo.redbot as red3
+except:
+    raise RepoMissing("Red v3 Repo has not been cloned")
 
 modules["redbot"] = red3
 
