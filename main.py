@@ -1,6 +1,7 @@
 from traceback import format_exception
 from argparse import ArgumentParser
 from importlib import import_module
+from sys import argv
 from os.path import isdir, isfile
 from os import listdir, mkdir
 from json import load, dump
@@ -9,12 +10,12 @@ from cogs.utils.logger import Logger
 
 try:
     mkdir("data")
-except:
+except OSError:
     pass
 
 try:
     config = load(open("data/config.json"))
-except:
+except (IOError, ValueError):
     config = {"prefix": ["!"], "avatar": "", "token": ""}
 
     with open("data/config.json", "w") as conf:
@@ -25,6 +26,9 @@ bot = commands.Bot(command_prefix=config['prefix'])
 
 def arguments():
     parser = ArgumentParser(description="Explosive-Bot")
+    parser.add_argument("--debug",
+                        action="store_true",
+                        help="Gives more information on certain actions")
     parser.add_argument("-c", "--concise",
                         action="store_true",
                         help="Gives full traceback")
@@ -70,19 +74,25 @@ async def on_ready():
     bot.owner = info.owner.id
     bot.client_id = info.owner
 
-    cogs = loadmodules()
-    botmodules = loadcogs()
+    cogs = loadcogs()
+    botmodules = loadmodules()
 
     # Finish Startup
-    bot.logger.info("Bot started")
+    if len(argv) != 1:
+        bot.logger.info(
+            "Bot started with the following arguments: {}".format("".join(argv[-1:])))
+    else:
+        bot.logger.info("Bot started")
+
     print("{} has started\n"
           "{} Servers\n"
           "{} Modules ({} loaded) \n"
           "{} Cogs ({} loaded)\n"
           "prefixes:\n{}"
-          "".format(bot.user.name, len(bot.guilds), len(botmodules['all']),
-                    len(botmodules['loaded']), len(cogs['all']),
-                    len(cogs['loaded']), " ".join(config["prefix"])))
+          "".format(bot.user.name, len(bot.guilds),
+                    len(botmodules['all']), len(botmodules['loaded']),
+                    len(cogs['all']), len(cogs['loaded']),
+                    " ".join(config["prefix"])))
 
 
 def loadmodules():
@@ -185,8 +195,6 @@ def preparecogs():
         with open("data/cogs.json", "w") as conf:
             dump(cogs, conf)
 
-    bot.logger.info("Preparation Done")
-
 if __name__ == "__main__":
     try:
         prepare()
@@ -197,4 +205,4 @@ if __name__ == "__main__":
             "".join(format_exception(type(error), error, error.__traceback__))))
     finally:
         bot.logger.info("Bot stopped")
-        print("")
+        print("")  # newline workaround
