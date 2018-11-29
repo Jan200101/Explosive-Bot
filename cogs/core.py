@@ -158,13 +158,37 @@ class Core:
         self.bot.logger.info("Prefixes set to {}".format(self.config['prefix']))
         await ctx.send("Prefix set\nRestart to apply it")
 
+    @settings.command()
+    @checks.is_owner()
+    async def avatar(self, ctx, *, URL: str):
+        """Change the avatar"""
+
+        try:
+            session = ClientSession(loop=self.bot.loop)
+            async with session.get(URL) as data:
+                image = await data.read()
+            await session.close()
+            await self.bot.user.edit(avatar=image)
+            await ctx.send("Done")
+            self.config['avatar'] = URL
+            with open("data/config.json", "w") as conf:
+                dump(self.config, conf)
+
+            self.bot.logger.info("Changed avatar")
+        except HTTPException:
+            await ctx.send("Trying to change the avatar too fast. Try again later")
+        except Exception as err:
+            self.bot.logger.warn("Error: {}".format(
+                "".join(format_exception(type(err), err, err.__traceback__))))
+
     @commands.command(name="exit", aliases=["shutdown"])
     @checks.is_owner()
     async def _exit(self, ctx):
         """Shutdown the bot"""
 
         await ctx.send("Bye")
-        self.bot.logger.info("Bot shutdown via command by {}".format(ctx.message.author))
+        self.bot.logger.info(
+            "Bot shutdown via command by {}".format(ctx.message.author))
         await self.bot.logout()
 
     @commands.command()
@@ -173,7 +197,8 @@ class Core:
         """Restart the bot"""
 
         await ctx.send("Restarting...")
-        self.bot.logger.info("Bot restart via command by {}".format(ctx.message.author))
+        self.bot.logger.info(
+            "Bot restart via command by {}".format(ctx.message.author))
         execl(executable, 'python', "main.py", *argv[1:])
 
 
