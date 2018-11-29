@@ -1,8 +1,10 @@
+from aiohttp import ClientSession
 from traceback import format_exception
 from importlib import import_module
 from os import execl
 from sys import argv, executable
 from json import load, dump
+from discord.errors import HTTPException
 from discord.ext import commands
 
 from cogs.utils import checks
@@ -101,7 +103,7 @@ class Core:
         """Load a module"""
 
         try:
-            import_module('modules.{}.init'.format(module))
+            import_module('modules.{}.init'.format(module)).init()
             self.botmodules['loaded'].append(module)
             self.bot.logger.info(module + " loaded")
             with open("data/modules.json", "w") as conf:
@@ -123,10 +125,11 @@ class Core:
 
         try:
             self.botmodules['loaded'].remove(module)
+            import_module('modules.{}.init'.format(module)).destroy()
             self.bot.logger.info(module + " unloaded")
             with open("data/modules.json", "w") as conf:
                 dump(self.botmodules, conf)
-            await ctx.send(module + " removed from autoloading\nRestart for it to take affect")
+            await ctx.send(module + " unloaded")
         except ValueError:
             if module in self.botmodules['all']:
                 await ctx.send(module + " is not loaded")
@@ -155,7 +158,8 @@ class Core:
         with open("data/config.json", "w") as conf:
             dump(self.config, conf)
 
-        self.bot.logger.info("Prefixes set to {}".format(self.config['prefix']))
+        self.bot.logger.info(
+            "Prefixes set to {}".format(self.config['prefix']))
         await ctx.send("Prefix set\nRestart to apply it")
 
     @settings.command()
