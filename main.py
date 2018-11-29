@@ -1,5 +1,3 @@
-from logging import getLogger, Formatter, INFO
-from logging.handlers import RotatingFileHandler
 from traceback import format_exception
 from argparse import ArgumentParser
 from importlib import import_module
@@ -7,6 +5,7 @@ from os.path import isdir, isfile
 from os import listdir, mkdir
 from json import load, dump
 from discord.ext import commands
+from cogs.utils.logger import Logger
 
 try:
     mkdir("data")
@@ -127,23 +126,19 @@ def loadcogs():
 
 
 def prepare():
-    # Set Variables
-
-    bot.logger = getLogger("bot")
-    bot.logger.setLevel(INFO)
-
-    logformat = Formatter(
-        '%(asctime)s %(levelname)s %(module)s '
-        '%(funcName)s %(lineno)d: %(message)s',
-        datefmt="[%d/%m/%Y %H:%M]")
-
-    filehandler = RotatingFileHandler(
-        filename='data/bot.log', encoding='utf-8', mode='a', maxBytes=10**7, backupCount=5)
-    filehandler.setFormatter(logformat)
-
-    bot.logger.addHandler(filehandler)
+    # Set Logger
+    bot.logger = Logger("bot")
 
     # Prepare Modules
+    preparemodules()
+
+    # Prepare cogs
+    preparecogs()
+
+    bot.logger.info("Preparation Done")
+
+
+def preparemodules():
     try:
         botmodules = load(open("data/modules.json"))
     except:
@@ -161,7 +156,8 @@ def prepare():
         with open("data/modules.json", "w") as conf:
             dump(botmodules, conf)
 
-    # Prepare cogs
+
+def preparecogs():
     try:
         cogs = load(open("data/cogs.json"))
     except:
