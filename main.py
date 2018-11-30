@@ -1,5 +1,6 @@
+from cogs.utils.arguments import args
+
 from traceback import format_exception
-from argparse import ArgumentParser
 from importlib import import_module
 from sys import argv
 from os.path import isdir, isfile
@@ -22,22 +23,6 @@ except (IOError, ValueError):
         dump(config, conf)
 
 bot = commands.Bot(command_prefix=config['prefix'])
-
-
-def arguments():
-    parser = ArgumentParser(description="Explosive-Bot")
-    parser.add_argument("--debug",
-                        action="store_true",
-                        help="Gives more information on certain actions")
-    parser.add_argument("-c", "--concise",
-                        action="store_true",
-                        help="Gives full traceback")
-    parser.add_argument("--no-run",
-                        action="store_true",
-                        help="Don't run the bot")
-    return parser
-
-args = arguments().parse_args()
 
 
 @bot.event
