@@ -18,9 +18,10 @@ install:
 script:
   - find . | grep -E "\.py$" | xargs python -m compileall
   - find . | grep -E "\.py$" | xargs pyflakes
+  - python main.py --dry-run
 
 after_script:
-  - coverage run main.py --no-run
+  - coverage run main.py --dry-run
   - coverage xml
   - python-codacy-coverage -r coverage.xml
 
