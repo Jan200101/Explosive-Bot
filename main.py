@@ -1,28 +1,74 @@
 from cogs.utils.arguments import args
 
+from asyncio import get_event_loop
 from traceback import format_exception
 from importlib import import_module
 from sys import argv
 from os.path import isdir, isfile
 from os import listdir, mkdir
 from json import load, dump
+from discord.errors import LoginFailure
 from discord.ext import commands
+
 from cogs.utils.logger import Logger
+from cogs.utils.settings import Settings
 
 try:
     mkdir("data")
 except OSError:
     pass
 
-try:
-    config = load(open("data/config.json"))
-except (IOError, ValueError):
-    config = {"prefix": ["!"], "avatar": "", "token": ""}
+
+class Bot(commands.Bot):
+
+    def __init__(self, *args, **kwargs):
+        self.logger = Logger("bot")
+        self.settings = Settings()
+
+        super().__init__(*args, command_prefix=self.prefix_manager, **kwargs)
+
+    def prefix_manager(self, bot, message) -> list:
+        return self.settings.getprefix(message.guild)
+
+bot = Bot()
+
+
+def setup():
+    config = {
+        "avatar": "",
+        "token": "",
+    }
+
+    print("Setup")
+    print("\nInsert your bots token:")
+
+    while True:
+        token = input("> ")
+        if len(token) >= 50:
+            config['token'] = token
+            break
+        print("That is not a valid token")
+
+    print("\nChoose a prefix\nSeperate multiple prefixes with a space")
+    prefix = input(">").split()
+
+    print("\nInput admin role name\nLeave empty for default (Admin)")
+    admin = input("> ")
+
+    print("\nInput moderator role name\nLeave empty for default (Moderator)")
+    moderator = input("> ")
+
+    bot.settings.setglobalsettings(prefix, admin, moderator)
 
     with open("data/config.json", "w") as conf:
         dump(config, conf)
 
-bot = commands.Bot(command_prefix=config['prefix'])
+    return config
+
+try:
+    config = load(open("data/config.json"))
+except (IOError, ValueError):
+    config = setup()
 
 
 @bot.event
@@ -41,13 +87,7 @@ async def on_command_error(ctx, error):
         return
     else:
         exception_log = "Exception in command '{}'\n" "".format(
-            ctx.command.qualified_name)
-        if args.concise:
-            exception_log += "".join(
-                format_exception(type(error), error, error.__traceback__)
-            )
-        else:
-            exception_log += "{} : {}".format(type(error).__name__, error)
+            ctx.command.qualified_name) + "".join(format_exception(type(error), error, error.__traceback__))
 
         print(exception_log)
 
@@ -77,10 +117,10 @@ async def on_ready():
           "".format(bot.user.name, len(bot.guilds),
                     len(botmodules['all']), len(botmodules['loaded']),
                     len(cogs['all']), len(cogs['loaded']),
-                    " ".join(config["prefix"])))
+                    " ".join(bot.settings.getprefix())))
 
 
-def loadmodules():
+def loadmodules() -> dict:
     botmodules = load(open("data/modules.json"))
 
     for module in botmodules['loaded']:
@@ -94,7 +134,7 @@ def loadmodules():
     return botmodules
 
 
-def loadcogs():
+def loadcogs() -> dict:
     cogs = load(open("data/cogs.json"))
 
     for cog in list(cogs['loaded'].items()):
@@ -109,9 +149,6 @@ def loadcogs():
 
 
 def prepare():
-    # Set Logger
-    bot.logger = Logger("bot")
-
     # Prepare Modules
     preparemodules()
 
@@ -173,9 +210,16 @@ if __name__ == "__main__":
         prepare()
         if not args.dry_run:
             bot.run(config['token'])
+    except LoginFailure:
+        setup()
+        exit()
     except Exception as error:
         bot.logger.warn("Error on exit: {}".format(
             "".join(format_exception(type(error), error, error.__traceback__))))
     finally:
+        if args.dry_run:
+            loop = get_event_loop()
+            loop.run_until_complete(bot.close())
+            loop.close()
         bot.logger.info("Bot stopped")
         print("")  # newline workaround

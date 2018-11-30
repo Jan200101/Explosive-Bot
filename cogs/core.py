@@ -149,16 +149,40 @@ class Core:
     @settings.command()
     @checks.is_owner()
     async def prefix(self, ctx, *, prefix: str):
-        """Set the prefix"""
+        """
+        Set the guild prefix
+        Seperate multiple prefixes with a space
+        set prefix to None to use the global prefix again
+        """
 
-        self.config['prefix'] = prefix.split()
+        guild = ctx.message.guild
 
-        with open("data/config.json", "w") as conf:
-            dump(self.config, conf)
+        if prefix.lower() == "none":
+            prefix = None
+            self.bot.logger.info("[{}]Reset Guild prefix".format(guild.name))
+            await ctx.send("Reset prefix")
+        else:
+            prefix = prefix.split()
+            self.bot.logger.info("[{}]Guild prefix set to {}".format(guild.name, " ".join(prefix)))
+            await ctx.send("Prefix changed to " + " ".join(prefix))
 
-        self.bot.logger.info(
-            "Prefixes set to {}".format(self.config['prefix']))
-        await ctx.send("Prefix set\nRestart to apply it")
+        self.bot.settings.setprefix(guild, prefix)
+
+
+    @settings.command()
+    @checks.is_owner()
+    async def globalprefix(self, ctx, *, prefix: str):
+        """
+        Set the global prefix
+        Seperate multiple prefixes with a space
+        """
+
+        prefix = prefix.split()
+
+        self.bot.settings.setglobalprefix(prefix)
+
+        self.bot.logger.info("Global prefix set to {}".format(" ".join(prefix)))
+        await ctx.send("Prefix changed to " + " ".join(prefix))
 
     @settings.command()
     @checks.is_owner()
