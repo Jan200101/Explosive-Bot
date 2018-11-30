@@ -22,14 +22,14 @@ class Settings():
             "MODERATOR_ROLE": None,
         }
 
-    def __save__(self):
+    def save(self):
         with open("data/settings.json", "w") as conf:
             dump(self.settings, conf)
 
     def setter(func):
         def wrapper(self, *args, **kwargs):
             func(self, *args, **kwargs)
-            self.__save__()
+            self.save()
         return wrapper
 
     @setter
