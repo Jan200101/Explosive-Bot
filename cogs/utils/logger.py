@@ -24,7 +24,7 @@ class Logger:
 
     def info(self, content, *, display=False):
         self._add("INFO", content, _getframe(
-            1).f_code.co_namem, display=display)
+            1).f_code.co_name, display=display)
 
     def warn(self, content, *, display=True):
         self._add("WARNING", content, _getframe(
