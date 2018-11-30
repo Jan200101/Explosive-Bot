@@ -4,7 +4,7 @@ from sys import _getframe
 
 class Logger:
 
-    def __init__(self, name, *, dateform="%d/%m/%Y %H:%M"):
+    def __init__(self, name, *, dateform="%Y-%m-%d %H:%M"):
         self.name = name
         self.dateform = dateform
 
@@ -22,8 +22,10 @@ class Logger:
             print("[{function}] {content}".format(
                 function=function, content=content))
 
-    def info(self, content):
-        self._add("INFO", content, _getframe(1).f_code.co_name)
+    def info(self, content, *, display=False):
+        self._add("INFO", content, _getframe(
+            1).f_code.co_namem, display=display)
 
-    def warn(self, content):
-        self._add("WARNING", content, _getframe(1).f_code.co_name, display=True)
+    def warn(self, content, *, display=True):
+        self._add("WARNING", content, _getframe(
+            1).f_code.co_name, display=display)
