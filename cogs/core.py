@@ -63,8 +63,7 @@ class Core:
         except Exception as error:
             self.bot.logger.warn("Failed to load {}: {}".format(cog[0], "".join(
                 format_exception(type(error), error, error.__traceback__))))
-            print("Failed to load {} :\n{} : {}".format(
-                  cog, type(error).__name__, error))
+            await ctx.send("A error has occured loading {}\nCheck the console or the logs".format(cog))
 
     @commands.command()
     @checks.is_owner()
@@ -112,8 +111,7 @@ class Core:
         except Exception as error:
             self.bot.logger.warn("A error occured in {}: {}".format(module, "".join(
                 format_exception(type(error), error, error.__traceback__))))
-            await ctx.send("A error occured in {}:\n{} : {}".format(
-                module, type(error).__name__, error))
+            await ctx.send("A error has occured loading {}\nCheck the console or the logs".format(module))
 
     @modules.group(name="unload")
     @checks.is_owner()

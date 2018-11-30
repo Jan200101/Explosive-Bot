@@ -106,12 +106,6 @@ def loadmodules():
         except Exception as error:
             bot.logger.warn("A error occured in {}: {}".format(module, "".join(
                 format_exception(type(error), error, error.__traceback__))))
-            if args.concise:
-                print("A error occured in {}:\n{}".format(module, "".join(
-                    format_exception(type(error), error, error.__traceback__))))
-            else:
-                print("A error occured in {}:\n{} : {}".format(
-                    module, type(error).__name__, error))
     return botmodules
 
 
@@ -126,12 +120,6 @@ def loadcogs():
             cogs['loaded'].pop(cog[0])
             bot.logger.warn("Failed to load {}: {}".format(cog[0], "".join(
                 format_exception(type(error), error, error.__traceback__))))
-            if args.concise:
-                print("Failed to load {}:\n{}".format(cog[0], "".join(
-                    format_exception(type(error), error, error.__traceback__))))
-            else:
-                print("Failed to load {} :\n{} : {}".format(
-                    cog, type(error).__name__, error))
     return cogs
 
 
