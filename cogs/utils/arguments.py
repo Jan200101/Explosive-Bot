@@ -1,5 +1,6 @@
 from argparse import ArgumentParser
 
+
 def arguments():
     parser = ArgumentParser(description="Explosive-Bot")
     parser.add_argument("--dry-run", "--no-run",
