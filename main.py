@@ -171,7 +171,7 @@ def preparecogs():
 if __name__ == "__main__":
     try:
         prepare()
-        if not args.no_run:
+        if not args.dry_run:
             bot.run(config['token'])
     except Exception as error:
         bot.logger.warn("Error on exit: {}".format(
