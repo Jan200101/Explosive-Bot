@@ -101,7 +101,7 @@ def loadmodules():
     for module in botmodules['loaded']:
         try:
             # TODO: load modules as python module
-            import_module('modules.{}.init'.format(module)).init()
+            import_module('modules.{}'.format(module)).init()
             bot.logger.info(module + " loaded")
         except Exception as error:
             bot.logger.warn("A error occured in {}: {}".format(module, "".join(

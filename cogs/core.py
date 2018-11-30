@@ -103,7 +103,7 @@ class Core:
         """Load a module"""
 
         try:
-            import_module('modules.{}.init'.format(module)).init()
+            import_module('modules.{}'.format(module)).init()
             self.botmodules['loaded'].append(module)
             self.bot.logger.info(module + " loaded")
             with open("data/modules.json", "w") as conf:
@@ -125,7 +125,7 @@ class Core:
 
         try:
             self.botmodules['loaded'].remove(module)
-            import_module('modules.{}.init'.format(module)).destroy()
+            import_module('modules.{}'.format(module)).destroy()
             self.bot.logger.info(module + " unloaded")
             with open("data/modules.json", "w") as conf:
                 dump(self.botmodules, conf)
