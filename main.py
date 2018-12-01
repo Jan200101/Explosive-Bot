@@ -3,7 +3,7 @@ from cogs.utils.arguments import args
 from asyncio import get_event_loop
 from traceback import format_exception
 from importlib import import_module
-from sys import argv
+from sys import argv, executable
 from os.path import isdir, isfile
 from os import listdir, mkdir, execl
 from json import load, dump
