@@ -18,7 +18,6 @@ try:
 except OSError:
     pass
 
-
 class Bot(commands.Bot):
 
     def __init__(self, *args, **kwargs):
@@ -34,7 +33,7 @@ bot = Bot()
 
 
 def setup():
-    config = {
+    CONFIG = {
         "avatar": "",
         "token": "",
     }
@@ -47,7 +46,7 @@ def setup():
         while True:
             token = input("> ")
             if len(token) >= 50:
-                config['token'] = token
+                CONFIG['token'] = token
                 break
             print("That is not a valid token")
 
@@ -62,18 +61,18 @@ def setup():
 
         bot.settings.setglobalsettings(prefix, admin, moderator)
     else:
-        bot.settings.setglboalsettings(["!"])
+        bot.settings.setglobalsettings(["!"])
 
 
     with open("data/config.json", "w") as conf:
-        dump(config, conf)
+        dump(CONFIG, conf)
 
-    return config
+    return CONFIG
 
 try:
-    config = load(open("data/config.json"))
+    CONFIG = load(open("data/config.json"))
 except (IOError, ValueError):
-    config = setup()
+    CONFIG = setup()
 
 
 @bot.event
@@ -130,7 +129,6 @@ def loadmodules() -> dict:
 
     for module in botmodules['loaded']:
         try:
-            # TODO: load modules as python module
             import_module('modules.{}'.format(module)).init()
             bot.logger.info(module + " loaded")
         except Exception as error:
@@ -214,7 +212,7 @@ if __name__ == "__main__":
     try:
         prepare()
         if not args.dry_run:
-            bot.run(config['token'])
+            bot.run(CONFIG['token'])
     except LoginFailure:
         setup()
         execl(executable, 'python', "main.py", *argv[1:])
