@@ -32,7 +32,7 @@ class Bot(commands.Bot):
 bot = Bot()
 
 
-def setup():
+def setup() -> dict:
     CONFIG = {
         "avatar": "",
         "token": "",

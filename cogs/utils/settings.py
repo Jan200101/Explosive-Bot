@@ -41,7 +41,7 @@ class Settings():
             self.settings['DEFAULT']["MODERATOR_ROLE"] = moderator
 
     @setter
-    def setglobalprefix(self, prefix):
+    def setglobalprefix(self, prefix: list):
         self.settings['DEFAULT']['PREFIX'] = prefix
 
     @setter
@@ -49,7 +49,7 @@ class Settings():
         if not guild.id in self.settings: self.settings[guild.id] = self.default_settings.copy()
         self.settings[guild.id]['PREFIX'] = prefix
 
-    def getprefix(self, guild: Guild = None):
+    def getprefix(self, guild: Guild = None) -> list:
         if not guild or not guild.id in self.settings or not self.settings[guild.id]['PREFIX']:
             return self.settings['DEFAULT']['PREFIX']
         return self.settings[guild.id]['PREFIX']
