@@ -10,7 +10,7 @@ class Settings():
         except (IOError, ValueError):
             self.settings = {
                 "DEFAULT": {
-                    "PREFIX": [],
+                    "PREFIX": ["!"],
                     "ADMIN_ROLE": "Admin",
                     "MODERATOR_ROLE": "Moderator",
                 }
