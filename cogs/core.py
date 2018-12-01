@@ -118,7 +118,6 @@ class Core:
     async def moduleunload(self, ctx, *, module: str):
         """
         Unload a module
-        Requires restarting the bot to take affect
         """
 
         try:
