@@ -39,26 +39,31 @@ def setup():
         "token": "",
     }
 
-    print("Setup")
-    print("\nInsert your bots token:")
+    if not args.dry_run:
 
-    while True:
-        token = input("> ")
-        if len(token) >= 50:
-            config['token'] = token
-            break
-        print("That is not a valid token")
+        print("Setup")
+        print("\nInsert your bots token:")
 
-    print("\nChoose a prefix\nSeperate multiple prefixes with a space")
-    prefix = input(">").split()
+        while True:
+            token = input("> ")
+            if len(token) >= 50:
+                config['token'] = token
+                break
+            print("That is not a valid token")
 
-    print("\nInput admin role name\nLeave empty for default (Admin)")
-    admin = input("> ")
+        print("\nChoose a prefix\nSeperate multiple prefixes with a space")
+        prefix = input(">").split()
 
-    print("\nInput moderator role name\nLeave empty for default (Moderator)")
-    moderator = input("> ")
+        print("\nInput admin role name\nLeave empty for default (Admin)")
+        admin = input("> ")
 
-    bot.settings.setglobalsettings(prefix, admin, moderator)
+        print("\nInput moderator role name\nLeave empty for default (Moderator)")
+        moderator = input("> ")
+
+        bot.settings.setglobalsettings(prefix, admin, moderator)
+    else:
+        bot.settings.setglboalsettings(["!"])
+
 
     with open("data/config.json", "w") as conf:
         dump(config, conf)
