@@ -46,10 +46,21 @@ class Settings():
 
     @setter
     def setprefix(self, guild: Guild, prefix):
-        if not guild.id in self.settings: self.settings[guild.id] = self.default_settings.copy()
-        self.settings[guild.id]['PREFIX'] = prefix
+        if not str(guild.id) in self.settings: self.settings[str(guild.id)] = self.default_settings.copy()
+        self.settings[str(guild.id)]['PREFIX'] = prefix
 
     def getprefix(self, guild: Guild = None) -> list:
-        if not guild or not guild.id in self.settings or not self.settings[guild.id]['PREFIX']:
+        if not guild or not str(guild.id) in self.settings or not self.settings[str(guild.id)]['PREFIX']:
             return self.settings['DEFAULT']['PREFIX']
-        return self.settings[guild.id]['PREFIX']
+        return self.settings[str(guild.id)]['PREFIX']
+
+    def getadminrole(self, guild: Guild = None) -> str:
+        if not guild or not str(guild.id) in self.settings or not self.settings[str(guild.id)]['ADMIN_ROLE']:
+            return self.settings['DEFAULT']['ADMIN_ROLE']
+        return self.settings[str(guild.id)]['ADMIN_ROLE']
+
+    def getmoderatorrole(self, guild: Guild = None) -> str:
+        if not guild or not str(guild.id) in self.settings or not self.settings[str(guild.id)]['MODERATOR_ROLE']:
+            return self.settings['DEFAULT']['MODERATOR_ROLE']
+        return self.settings[str(guild.id)]['MODERATOR_ROLE']
+
