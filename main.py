@@ -70,7 +70,10 @@ def setup() -> dict:
     return CONFIG
 
 try:
-    CONFIG = load(open("data/config.json"))
+    if args.setup:
+        CONFIG = setup()
+    else:
+        CONFIG = load(open("data/config.json"))
 except (IOError, ValueError):
     CONFIG = setup()
 
