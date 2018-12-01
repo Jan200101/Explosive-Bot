@@ -117,11 +117,9 @@ async def on_ready():
           "{} Servers\n"
           "{} Modules ({} loaded) \n"
           "{} Cogs ({} loaded)\n"
-          "prefixes:\n{}"
           "".format(bot.user.name, len(bot.guilds),
                     len(botmodules['all']), len(botmodules['loaded']),
-                    len(cogs['all']), len(cogs['loaded']),
-                    " ".join(bot.settings.getprefix())))
+                    len(cogs['all']), len(cogs['loaded'])))
 
 
 def loadmodules() -> dict:
