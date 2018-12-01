@@ -5,7 +5,7 @@ from traceback import format_exception
 from importlib import import_module
 from sys import argv
 from os.path import isdir, isfile
-from os import listdir, mkdir
+from os import listdir, mkdir, execl
 from json import load, dump
 from discord.errors import LoginFailure
 from discord.ext import commands
@@ -212,7 +212,7 @@ if __name__ == "__main__":
             bot.run(config['token'])
     except LoginFailure:
         setup()
-        exit()
+        execl(executable, 'python', "main.py", *argv[1:])
     except Exception as error:
         bot.logger.warn("Error on exit: {}".format(
             "".join(format_exception(type(error), error, error.__traceback__))))
