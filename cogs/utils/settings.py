@@ -23,7 +23,7 @@ class Settings():
                 })
             })
 
-        self.default_settings = config{
+        self.default_settings = config({
             "PREFIX": None,
             "ADMIN_ROLE": None,
             "MODERATOR_ROLE": None,
