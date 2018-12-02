@@ -8,24 +8,24 @@ class Logger:
         self.name = name
         self.dateform = dateform
 
-    def write(self, content, type, function):
+    def write(self, content, entrytype, function):
         time = datetime.now().strftime(self.dateform)
         with open("logs/{}.log".format(str(date.today())), "a") as file:
-            file.write("[{time}] {type} {name} {function}: {content}\n".format(
-                time=time, type=type, name=self.name, function=function, content=content))
+            file.write("[{time}] {entrytype} {name} {function}: {content}\n".format(
+                time=time, entrytype=entrytype, name=self.name, function=function, content=content))
 
-    def _add(self, type, content, function=None, *, display=False):
-        if not function:
-            function = _getframe(1).f_code.co_name
-        self.write(content, type, function)
+    def _add(self, entrytype, content, *, display=False):
+        function = _getframe(2).f_code.co_name
+        self.write(content, entrytype, function)
         if display:
             print("[{function}] {content}".format(
                 function=function, content=content))
 
+    def add(self, entrytype, content, *, display=False):
+        self._add(entrytype, content, display=display)
+
     def info(self, content, *, display=False):
-        self._add("INFO", content, _getframe(
-            1).f_code.co_name, display=display)
+        self._add("INFO", content, display=display)
 
     def warn(self, content, *, display=True):
-        self._add("WARNING", content, _getframe(
-            1).f_code.co_name, display=display)
+        self._add("WARNING", content, display=display)
