@@ -24,8 +24,6 @@ script:
 after_script:
   - rm -rf data/*.json
   - coverage run main.py --dry-run
-  - coverage run main.py --dry-run
-  - coverage run main.py --dry-run --setup
   - coverage xml
   - python-codacy-coverage -r coverage.xml
 
