@@ -2,7 +2,7 @@ from discord import Guild
 from json import load, dump
 
 
-class config(dict):
+class Config(dict):
 
     def __missing__(self, key):
         return self['DEFAULT']
@@ -13,21 +13,21 @@ class Settings():
     def __init__(self):
         try:
             self.settings = load(
-                open("data/settings.json"), object_hook=config)
+                open("data/settings.json"), object_hook=Config)
         except (IOError, ValueError):
-            self.settings = config({
-                "DEFAULT": config({
+            self.settings = Config({
+                "DEFAULT": {
                     "PREFIX": ["!"],
                     "ADMIN_ROLE": "Admin",
                     "MODERATOR_ROLE": "Moderator",
-                })
+                }
             })
 
-        self.default_settings = config({
+        self.default_settings = {
             "PREFIX": None,
             "ADMIN_ROLE": None,
             "MODERATOR_ROLE": None,
-        })
+        }
 
     def save(self):
         with open("data/settings.json", "w") as conf:
