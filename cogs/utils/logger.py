@@ -1,5 +1,5 @@
+from inspect import currentframe, getouterframes
 from datetime import date, datetime
-from sys import _getframe
 
 
 class Logger:
@@ -11,15 +11,13 @@ class Logger:
     def write(self, content, entrytype, function):
         time = datetime.now().strftime(self.dateform)
         with open("logs/{}.log".format(str(date.today())), "a") as file:
-            file.write("[{time}] {entrytype} {name} {function}: {content}\n".format(
-                time=time, entrytype=entrytype, name=self.name, function=function, content=content))
+            file.write(f"[{time}] {entrytype} {self.name} {function}: {content}\n")
 
     def _add(self, entrytype, content, *, display=False):
-        function = _getframe(2).f_code.co_name
+        function = getouterframes(currentframe(), 3)[2][3]
         self.write(content, entrytype, function)
         if display:
-            print("[{function}] {content}".format(
-                function=function, content=content))
+            print(f"[{function}] {content}")
 
     def add(self, entrytype, content, *, display=False):
         self._add(entrytype, content, display=display)
