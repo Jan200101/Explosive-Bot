@@ -224,7 +224,7 @@ class Core:
         await ctx.send("Restarting...")
         self.bot.logger.info(
             "Bot restart via command by {}".format(ctx.message.author))
-        execl(executable, 'python', "main.py", *argv[1:])
+        execl(executable, 'python', *argv)
 
 
 def setup(bot):

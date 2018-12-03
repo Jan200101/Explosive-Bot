@@ -216,7 +216,7 @@ if __name__ == "__main__":
             bot.run(CONFIG['token'])
     except LoginFailure:
         setup()
-        execl(executable, 'python', "main.py", *argv[1:])
+        execl(executable, 'python', *argv)
     except Exception as error:
         bot.logger.warn("Error on exit: {}".format(
             "".join(format_exception(type(error), error, error.__traceback__))))
