@@ -18,16 +18,31 @@ try:
 except OSError:
     pass
 
+
 class Bot(commands.Bot):
 
     def __init__(self, *args, **kwargs):
         self.logger = Logger("bot")
         self.settings = Settings()
 
-        super().__init__(*args, command_prefix=self.prefix_manager, **kwargs)
+        super().__init__(*args, command_prefix=self.prefix_manager,
+                         pm_help=self.dmhelp, **kwargs)
 
     def prefix_manager(self, bot, message) -> list:
-        return self.settings.getprefix(message.guild)
+        guild = message.guild
+        if not guild:
+            guild = None
+        else:
+            guild = guild.id
+        return self.settings.getprefix(guild)
+
+    def dmhelp(self, bot, message) -> bool:
+        guild = message.guild
+        if not guild:
+            guild = None
+        else:
+            guild = guild.id
+        return self.settings.getdm(guild)
 
 bot = Bot()
 
@@ -59,10 +74,20 @@ def setup() -> dict:
         print("\nInput moderator role name\nLeave empty for default (Moderator)")
         moderator = input("> ")
 
-        bot.settings.setglobalsettings(prefix, admin, moderator)
-    else:
-        bot.settings.setglobalsettings(["!"])
+        print(
+            "\nShould the help messages be send to DMs\nLeave empty for default (True)[Y/N]")
+        dmhelp = input("> ")
+        for msg in ("y", "yes", "true"):
+            if msg in dmhelp.lower():
+                dmhelp = True
+                return
 
+        if not dmhelp:
+            dmhelp = False
+
+        bot.settings.setsettings('DEFAULT', prefix, admin, moderator, dmhelp)
+    else:
+        bot.settings.setsettings('DEFAULT', ["!"])
 
     with open("data/config.json", "w") as conf:
         dump(CONFIG, conf)
@@ -141,13 +166,13 @@ def loadmodules() -> dict:
 def loadcogs() -> dict:
     cogs = load(open("data/cogs.json"))
 
-    for cog in list(cogs['loaded'].items()):
+    for name, cog in cogs['loaded'].copy().items():
         try:
-            bot.load_extension(cog[1])
-            bot.logger.info(cog[0] + " loaded")
+            bot.load_extension(cog)
+            bot.logger.info(name + " loaded")
         except Exception as error:
-            cogs['loaded'].pop(cog[0])
-            bot.logger.warn("Failed to load {}: {}".format(cog[0], "".join(
+            cogs['loaded'].pop(name)
+            bot.logger.warn("Failed to load {}: {}".format(name, "".join(
                 format_exception(type(error), error, error.__traceback__))))
     return cogs
 
@@ -185,7 +210,8 @@ def preparecogs():
     try:
         cogs = load(open("data/cogs.json"))
     except:
-        cogs = {"all": ["cogs.core"], "loaded": {"core": "cogs.core"}}
+        cogs = {"all": ["cogs.core", "cogs.moderation"], "loaded": {
+            "core": "cogs.core", "moderation": "cogs.moderation"}}
 
         with open("data/cogs.json", "w") as conf:
             dump(cogs, conf)

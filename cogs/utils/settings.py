@@ -7,7 +7,6 @@ class Config(dict):
     def __missing__(self, key):
         return self['DEFAULT']
 
-
 class Settings():
 
     def __init__(self):
@@ -20,6 +19,7 @@ class Settings():
                     "PREFIX": ["!"],
                     "ADMIN_ROLE": "Admin",
                     "MODERATOR_ROLE": "Moderator",
+                    "DMHELP": True,
                 }
             })
 
@@ -27,6 +27,7 @@ class Settings():
             "PREFIX": None,
             "ADMIN_ROLE": None,
             "MODERATOR_ROLE": None,
+            "DMHELP": None,
         }
 
     def save(self):
@@ -51,42 +52,39 @@ class Settings():
         return value
 
     @setter
-    def setglobalsettings(self, prefix: list, admin: str = None, moderator: str = None):
-        self.setvalue('DEFAULT', 'PREFIX', prefix)
+    def setsettings(self, guildid, prefix: list, admin: str = None, moderator: str = None, dmhelp: bool = True):
+        self.setvalue(guildid, 'PREFIX', prefix)
         if admin:
-            self.setvalue('DEFAULT', 'ADMIN_ROLE', admin)
+            self.setvalue(guildid, 'ADMIN_ROLE', admin)
         if moderator:
-            self.setvalue('DEFAULT', 'MODERATOR_ROLE', moderator)
+            self.setvalue(guildid, 'MODERATOR_ROLE', moderator)
+        if dmhelp:
+            self.setvalue(guildid, 'DMHELP', dmhelp)
 
     @setter
-    def setglobalprefix(self, prefix: list):
-        self.setvalue('DEFAULT', 'PREFIX', prefix)
+    def setprefix(self, guildid, prefix: list):
+        self.setvalue(guildid, 'PREFIX', prefix)
 
     @setter
-    def setglobaladminrole(self, prefix: list):
-        self.setvalue('DEFAULT', 'ADMIN_ROLE', prefix)
+    def setadminrole(self, guildid, role: str):
+        self.setvalue(guildid, 'ADMIN_ROLE', role)
 
     @setter
-    def setglobalmoderatorrole(self, prefix: list):
-        self.setvalue('DEFAULT', 'MODERATOR_ROLE', prefix)
+    def setmoderatorrole(self, guildid, role: str):
+        self.setvalue(guildid, 'MODERATOR_ROLE', role)
 
     @setter
-    def setprefix(self, guild: Guild, prefix):
-        self.setvalue(guild.id, 'PREFIX', prefix)
+    def setdm(self, guildid, value: bool):
+        self.setvalue(guildid, 'PREFIX', value)
 
-    @setter
-    def setadminrole(self, guild: Guild, prefix):
-        self.setvalue(guild.id, 'ADMIN_ROLE', prefix)
+    def getprefix(self, guildid = None) -> list:
+        return self.getvalue(guildid, 'PREFIX')
 
-    @setter
-    def setmoderatorrole(self, guild: Guild, prefix):
-        return self.setvalue(guild.id, 'MODERATOR_ROLE', prefix)
+    def getadminrole(self, guildid = None) -> str:
+        return self.getvalue(guildid, 'ADMIN_ROLE')
 
-    def getprefix(self, guild: Guild = None) -> list:
-        return self.getvalue(guild.id, 'PREFIX')
+    def getmoderatorrole(self, guildid = None) -> str:
+        return self.getvalue(guildid, 'MODERATOR_ROLE')
 
-    def getadminrole(self, guild: Guild = None) -> str:
-        return self.getvalue(guild.id, 'ADMIN_ROLE')
-
-    def getmoderatorrole(self, guild: Guild = None) -> str:
-        return self.getvalue(guild.id, 'MODERATOR_ROLE')
+    def getdm(self, guildid = None) -> bool:
+        return self.getvalue(guildid, 'DMHELP')
