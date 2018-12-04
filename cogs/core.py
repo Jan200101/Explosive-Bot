@@ -151,7 +151,7 @@ class Core:
         """
         Set the guild prefix
         Seperate multiple prefixes with a space
-        set prefix to None to use the global prefix again
+        set prefix to None to use the global prefix
         """
 
         guild = ctx.message.guild
@@ -178,7 +178,7 @@ class Core:
 
         prefix = prefix.split()
 
-        self.bot.settings.setglobalprefix(prefix)
+        self.bot.settings.setprefix("DEFAULT", prefix)
 
         self.bot.logger.info("Global prefix set to {}".format(" ".join(prefix)))
         await ctx.send("Prefix changed to " + " ".join(prefix))
