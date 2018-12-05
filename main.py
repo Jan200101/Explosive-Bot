@@ -26,7 +26,7 @@ class Bot(commands.Bot):
         self.settings = Settings()
 
         super().__init__(*args, command_prefix=self.prefix_manager,
-                         pm_help=self.dmhelp, **kwargs)
+                         pm_help=False, **kwargs)
 
     def prefix_manager(self, bot, message) -> list:
         guild = message.guild
@@ -35,14 +35,6 @@ class Bot(commands.Bot):
         else:
             guild = guild.id
         return self.settings.getprefix(guild)
-
-    def dmhelp(self, bot, message) -> bool:
-        guild = message.guild
-        if not guild:
-            guild = None
-        else:
-            guild = guild.id
-        return self.settings.getdm(guild)
 
 bot = Bot()
 
@@ -105,7 +97,7 @@ except (IOError, ValueError):
 
 @bot.event
 async def on_command_error(ctx, error):
-    if isinstance(error, (commands.MissingRequiredArgument, commands.BadArgument)):
+    if isinstance(error, (commands.MissingRequiredArgument, commands.BadArgument, commands.CommandInvokeError)):
         helpm = await bot.formatter.format_help_for(ctx, ctx.command)
         for message in helpm:
             await ctx.send(message)
@@ -128,7 +120,7 @@ async def on_command_error(ctx, error):
 async def on_ready():
     info = await bot.application_info()
 
-    bot.owner = info.owner.id
+    bot.owner = info.owner
     bot.client_id = info.owner
 
     cogs = loadcogs()
@@ -144,7 +136,7 @@ async def on_ready():
     print("{} has started\n"
           "{} Servers\n"
           "{} Modules ({} loaded) \n"
-          "{} Cogs ({} loaded)\n"
+          "{} Cogs    ({} loaded)\n"
           "".format(bot.user.name, len(bot.guilds),
                     len(botmodules['all']), len(botmodules['loaded']),
                     len(cogs['all']), len(cogs['loaded'])))

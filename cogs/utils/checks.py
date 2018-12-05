@@ -14,25 +14,38 @@ def check_rolename(ctx, rolename):
 
 
 def check_mod(ctx):
-    return check_rolename(ctx, (ctx.bot.settings.getmoderatorrole(),ctx.bot.settings.getadminrole()))
+    if check_owner(ctx):
+        return True
+    guild = ctx.message.guild
+    if not guild:
+        guild = None
+    else:
+        guild = guild.id
+    return check_rolename(ctx, (ctx.bot.settings.getmoderatorrole(guild), ctx.bot.settings.getadminrole(guild)))
 
 
 def check_admin(ctx):
-    return check_rolename(ctx, ctx.bot.settings.getadminrole())
+    if check_owner(ctx):
+        return True
+    guild = ctx.message.guild
+    if not guild:
+        guild = None
+    else:
+        guild = guild.id
+    return check_rolename(ctx, ctx.bot.settings.getadminrole(guild))
 
 
 def check_owner(ctx):
-    return ctx.bot.owner == ctx.message.author.id
+    return ctx.bot.owner == ctx.message.author
 
 
 def is_moderator():
     return check(check_mod)
 
+
 def is_mod():
     return is_moderator()
 
+
 def is_admin():
     return check(check_admin)
-
-def is_owner():
-    return check(check_owner)

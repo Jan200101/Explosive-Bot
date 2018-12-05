@@ -21,7 +21,7 @@ class Core:
         self.config = load(open("data/config.json"))
 
     @commands.command(name="cogs")
-    @checks.is_owner()
+    @commands.is_owner()
     async def _cogs(self, ctx):
         """
         Show loaded and unloaded cogs
@@ -44,7 +44,7 @@ class Core:
             await ctx.send("```diff\n" + message + "```")
 
     @commands.command(aliases=["reload"])
-    @checks.is_owner()
+    @commands.is_owner()
     async def load(self, ctx, *, cog: str):
         """Load a cog"""
 
@@ -66,7 +66,7 @@ class Core:
             await ctx.send("A error has occured loading {}\nCheck the console or the logs".format(cog))
 
     @commands.command()
-    @checks.is_owner()
+    @commands.is_owner()
     async def unload(self, ctx, *, cog: str):
         """Unload a cog"""
 
@@ -87,7 +87,7 @@ class Core:
             await ctx.send(cog + " not loaded, attempting unload anyways")
 
     @commands.group()
-    @checks.is_owner()
+    @commands.is_owner()
     async def modules(self, ctx):
         """Manage bot modules"""
 
@@ -97,7 +97,7 @@ class Core:
                 await ctx.send(page)
 
     @modules.group(name="load")
-    @checks.is_owner()
+    @commands.is_owner()
     async def moduleload(self, ctx, *, module: str):
         """Load a module"""
 
@@ -114,7 +114,7 @@ class Core:
             await ctx.send("A error has occured loading {}\nCheck the console or the logs".format(module))
 
     @modules.group(name="unload")
-    @checks.is_owner()
+    @commands.is_owner()
     async def moduleunload(self, ctx, *, module: str):
         """
         Unload a module
@@ -136,7 +136,7 @@ class Core:
                 self.bot.logger.info(module + " not found")
 
     @commands.group(name="set")
-    @checks.is_owner()
+    @checks.is_mod()
     async def settings(self, ctx):
         """Change bot setting"""
 
@@ -146,45 +146,7 @@ class Core:
                 await ctx.send(page)
 
     @settings.command()
-    @checks.is_owner()
-    async def prefix(self, ctx, *, prefix: str):
-        """
-        Set the guild prefix
-        Seperate multiple prefixes with a space
-        set prefix to None to use the global prefix
-        """
-
-        guild = ctx.message.guild
-
-        if prefix.lower() == "none":
-            prefix = None
-            self.bot.logger.info("[{}]Reset Guild prefix".format(guild.name))
-            await ctx.send("Reset prefix")
-        else:
-            prefix = prefix.split()
-            self.bot.logger.info("[{}]Guild prefix set to {}".format(guild.name, " ".join(prefix)))
-            await ctx.send("Prefix changed to " + " ".join(prefix))
-
-        self.bot.settings.setprefix(guild, prefix)
-
-
-    @settings.command()
-    @checks.is_owner()
-    async def globalprefix(self, ctx, *, prefix: str):
-        """
-        Set the global prefix
-        Seperate multiple prefixes with a space
-        """
-
-        prefix = prefix.split()
-
-        self.bot.settings.setprefix("DEFAULT", prefix)
-
-        self.bot.logger.info("Global prefix set to {}".format(" ".join(prefix)))
-        await ctx.send("Prefix changed to " + " ".join(prefix))
-
-    @settings.command()
-    @checks.is_owner()
+    @checks.is_mod()
     async def avatar(self, ctx, *, URL: str):
         """Change the avatar"""
 
@@ -206,8 +168,115 @@ class Core:
             self.bot.logger.warn("Error: {}".format(
                 "".join(format_exception(type(err), err, err.__traceback__))))
 
+    @settings.command()
+    @commands.guild_only()
+    @checks.is_mod()
+    async def prefix(self, ctx, *, prefix: str):
+        """
+        Set the guild prefix
+        Seperate multiple prefixes with a space
+        set prefix to None to use the global prefix
+        """
+
+        guild = ctx.message.guild
+
+        if prefix.lower() == "none":
+            prefix = None
+            self.bot.logger.info("[{}]Reset Guild prefix".format(guild.name))
+            await ctx.send("Reset prefix")
+        else:
+            prefix = prefix.split()
+            self.bot.logger.info("[{}]Guild prefix set to {}".format(
+                guild.name, " ".join(prefix)))
+            await ctx.send("Prefix changed to " + " ".join(prefix))
+
+        self.bot.settings.setprefix(guild.id, prefix)
+
+    @settings.group()
+    @commands.is_owner()
+    async def roles(self, ctx):
+        """Change global settings"""
+
+        if ctx.invoked_subcommand is None or isinstance(ctx.invoked_subcommand, commands.Group):
+            pages = await self.bot.formatter.format_help_for(ctx, ctx.command)
+            for page in pages:
+                await ctx.send(page)
+
+    @roles.group(name="admin")
+    @commands.is_owner()
+    async def admin(self, ctx, rolename: str):
+        """Set admin role"""
+
+        guild = ctx.message.guild
+
+        await ctx.send("admin role changed to " + " ".join(rolename))
+
+        self.bot.settings.setadminrole(guild.id, rolename)
+
+    @roles.group(name="mod", aliases=["moderator"])
+    @commands.is_owner()
+    async def mod(self, ctx, rolename: str):
+        """Set mod role"""
+
+        guild = ctx.message.guild
+
+        await ctx.send("moderator role changed to " + " ".join(rolename))
+
+        self.bot.settings.setmoderatorrole(guild.id, rolename)
+
+    @settings.group(name="global")
+    @commands.is_owner()
+    async def _global(self, ctx):
+        """Change global settings"""
+        if (ctx.invoked_subcommand is None or isinstance(ctx.invoked_subcommand, commands.Group)) and ctx.invoked_subcommand.name and ctx.invoked_subcommand.name == "global":
+            pages = await self.bot.formatter.format_help_for(ctx, ctx.command)
+            for page in pages:
+                await ctx.send(page)
+
+    @_global.command(name="prefix")
+    @commands.is_owner()
+    async def globalprefix(self, ctx, *, prefix: str):
+        """
+        Set the global prefix
+        Seperate multiple prefixes with a space
+        """
+
+        prefix = prefix.split()
+
+        self.bot.settings.setprefix("DEFAULT", prefix)
+
+        self.bot.logger.info(
+            "Global prefix set to {}".format(" ".join(prefix)))
+        await ctx.send("Prefix changed to " + " ".join(prefix))
+
+    @_global.group(name="roles")
+    @commands.is_owner()
+    async def globalroles(self, ctx):
+        """Change global settings"""
+
+        if (ctx.invoked_subcommand is None or isinstance(ctx.invoked_subcommand, commands.Group)) and ctx.invoked_subcommand.name == "roles":
+            pages = await self.bot.formatter.format_help_for(ctx, ctx.command)
+            for page in pages:
+                await ctx.send(page)
+
+    @globalroles.group(name="admin")
+    @commands.is_owner()
+    async def globaladmin(self, ctx, rolename: str):
+        """Set global admin role"""
+
+        await ctx.send("global admin role changed to " + " ".join(rolename))
+        self.bot.settings.setadminrole("DEFAULT", rolename)
+
+    @globalroles.group(name="mod", aliases=["moderator"])
+    @commands.is_owner()
+    async def globalmod(self, ctx, rolename: str):
+        """Set global moderator role"""
+
+        await ctx.send("global moderator role changed to " + " ".join(rolename))
+        self.bot.settings.setadminrole("DEFAULT", rolename)
+
     @commands.command(name="exit", aliases=["shutdown"])
-    @checks.is_owner()
+    @commands.is_owner()
     async def _exit(self, ctx):
         """Shutdown the bot"""
 
@@ -217,7 +286,7 @@ class Core:
         await self.bot.logout()
 
     @commands.command()
-    @checks.is_owner()
+    @commands.is_owner()
     async def restart(self, ctx):
         """Restart the bot"""
 

@@ -1,4 +1,3 @@
-from discord import Guild
 from json import load, dump
 
 
@@ -6,6 +5,7 @@ class Config(dict):
 
     def __missing__(self, key):
         return self['DEFAULT']
+
 
 class Settings():
 
@@ -19,7 +19,6 @@ class Settings():
                     "PREFIX": ["!"],
                     "ADMIN_ROLE": "Admin",
                     "MODERATOR_ROLE": "Moderator",
-                    "DMHELP": True,
                 }
             })
 
@@ -27,7 +26,6 @@ class Settings():
             "PREFIX": None,
             "ADMIN_ROLE": None,
             "MODERATOR_ROLE": None,
-            "DMHELP": None,
         }
 
     def save(self):
@@ -73,18 +71,11 @@ class Settings():
     def setmoderatorrole(self, guildid, role: str):
         self.setvalue(guildid, 'MODERATOR_ROLE', role)
 
-    @setter
-    def setdm(self, guildid, value: bool):
-        self.setvalue(guildid, 'PREFIX', value)
-
-    def getprefix(self, guildid = None) -> list:
+    def getprefix(self, guildid=None) -> list:
         return self.getvalue(guildid, 'PREFIX')
 
-    def getadminrole(self, guildid = None) -> str:
+    def getadminrole(self, guildid=None) -> str:
         return self.getvalue(guildid, 'ADMIN_ROLE')
 
-    def getmoderatorrole(self, guildid = None) -> str:
+    def getmoderatorrole(self, guildid=None) -> str:
         return self.getvalue(guildid, 'MODERATOR_ROLE')
-
-    def getdm(self, guildid = None) -> bool:
-        return self.getvalue(guildid, 'DMHELP')

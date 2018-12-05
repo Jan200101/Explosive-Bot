@@ -1,5 +1,6 @@
 from json import load, dump
 
+
 class Data(dict):
 
     def __init__(self, path: str, *args, **kwargs):
