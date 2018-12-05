@@ -121,7 +121,10 @@ async def on_ready():
     info = await bot.application_info()
 
     bot.owner = info.owner
-    bot.client_id = info.owner
+    bot.client_id = info.id
+
+    bot.oauth_url = "https://discordapp.com/oauth2/authorize?client_id={}&scope=bot".format(
+        bot.client_id)
 
     cogs = loadcogs()
     botmodules = loadmodules()
@@ -137,9 +140,10 @@ async def on_ready():
           "{} Servers\n"
           "{} Modules ({} loaded) \n"
           "{} Cogs    ({} loaded)\n"
+          "\n{}\n"
           "".format(bot.user.name, len(bot.guilds),
                     len(botmodules['all']), len(botmodules['loaded']),
-                    len(cogs['all']), len(cogs['loaded'])))
+                    len(cogs['all']), len(cogs['loaded']), bot.oauth_url))
 
 
 def loadmodules() -> dict:
