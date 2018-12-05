@@ -50,14 +50,12 @@ class Settings():
         return value
 
     @setter
-    def setsettings(self, guildid, prefix: list, admin: str = None, moderator: str = None, dmhelp: bool = True):
+    def setsettings(self, guildid, prefix: list, admin: str = None, moderator: str = None):
         self.setvalue(guildid, 'PREFIX', prefix)
         if admin:
             self.setvalue(guildid, 'ADMIN_ROLE', admin)
         if moderator:
             self.setvalue(guildid, 'MODERATOR_ROLE', moderator)
-        if dmhelp:
-            self.setvalue(guildid, 'DMHELP', dmhelp)
 
     @setter
     def setprefix(self, guildid, prefix: list):

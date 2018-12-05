@@ -66,18 +66,7 @@ def setup() -> dict:
         print("\nInput moderator role name\nLeave empty for default (Moderator)")
         moderator = input("> ")
 
-        print(
-            "\nShould the help messages be send to DMs\nLeave empty for default (True)[Y/N]")
-        dmhelp = input("> ")
-        for msg in ("y", "yes", "true"):
-            if msg in dmhelp.lower():
-                dmhelp = True
-                return
-
-        if not dmhelp:
-            dmhelp = False
-
-        bot.settings.setsettings('DEFAULT', prefix, admin, moderator, dmhelp)
+        bot.settings.setsettings('DEFAULT', prefix, admin, moderator)
     else:
         bot.settings.setsettings('DEFAULT', ["!"])
 
