@@ -1,4 +1,0 @@
-[submodule "redv3"]
-	path = modules/redv3/repo
-	url = https://github.com/Cog-Creators/Red-DiscordBot
-	branch = V3/develop
