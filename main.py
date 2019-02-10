@@ -86,7 +86,7 @@ except (IOError, ValueError):
 
 @bot.event
 async def on_command_error(ctx, error):
-    if isinstance(error, (commands.MissingRequiredArgument, commands.BadArgument, commands.CommandInvokeError)):
+    if isinstance(error, (commands.MissingRequiredArgument, commands.BadArgument)):
         helpm = await bot.formatter.format_help_for(ctx, ctx.command)
         for message in helpm:
             await ctx.send(message)
@@ -142,6 +142,11 @@ def loadmodules() -> dict:
         try:
             import_module('modules.{}'.format(module)).init()
             bot.logger.info(module + " loaded")
+        except ModuleNotFoundError:
+            botmodules['loaded'].remove(module)
+            if module in botmodules['all']:
+                botmodules['all'].remove(module)
+            bot.logger.warn(module + " not found")
         except Exception as error:
             bot.logger.warn("A error occured in {}: {}".format(module, "".join(
                 format_exception(type(error), error, error.__traceback__))))
@@ -211,6 +216,8 @@ def preparecogs():
             __import__(cog)
         except ModuleNotFoundError:
             cogs['all'].remove(cog)
+            if cog in cogs['loaded'].values():
+                cogs['loaded'] = {key: val for key, val in cogs['loaded'].items() if val != cog}
             bot.logger.warn(cog + " not found")
         except Exception as error:
             bot.logger.warn("Failed to load {}: {}".format(cog[0], "".join(
