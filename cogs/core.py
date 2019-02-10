@@ -22,7 +22,7 @@ class Core:
 
     @commands.command(name="cogs")
     @commands.is_owner()
-    async def _cogs(self, ctx):
+    async def cogslist(self, ctx):
         """
         Show loaded and unloaded cogs
         loaded cogs show the name they were assigned by a load function
@@ -43,9 +43,9 @@ class Core:
         for message in [content[i:i + 1989] for i in range(0, len(content), 1989)]:
             await ctx.send("```diff\n" + message + "```")
 
-    @commands.command(aliases=["reload"])
+    @commands.command(name="load", aliases=["reload"])
     @commands.is_owner()
-    async def load(self, ctx, *, cog: str):
+    async def cogsload(self, ctx, *, cog: str):
         """Load a cog"""
 
         try:
@@ -65,9 +65,9 @@ class Core:
                 format_exception(type(error), error, error.__traceback__))))
             await ctx.send("A error has occured loading {}\nCheck the console or the logs".format(cog))
 
-    @commands.command()
+    @commands.command(name="unload")
     @commands.is_owner()
-    async def unload(self, ctx, *, cog: str):
+    async def cogsunload(self, ctx, *, cog: str):
         """Unload a cog"""
 
         if cog == "core":
@@ -134,6 +134,27 @@ class Core:
             else:
                 await ctx.send("No such module")
                 self.bot.logger.info(module + " not found")
+
+    @modules.group(name="list")
+    @commands.is_owner()
+    async def moduleslist(self, ctx):
+        """
+        Show loaded and unloaded modules
+        """
+
+        loaded = ", ".join(self.botmodules['loaded'])
+        unloaded = ", ".join(
+            [y for y in self.botmodules['all'] if not y[5:] in self.botmodules['loaded']])
+
+        content = ("+ Loaded\n"
+                   "{}\n"
+                   "- Unloaded\n"
+                   "{}"
+                   "".format(loaded, unloaded)
+                   )
+
+        for message in [content[i:i + 1989] for i in range(0, len(content), 1989)]:
+            await ctx.send("```diff\n" + message + "```")
 
     @commands.group(name="set")
     @checks.is_mod()
