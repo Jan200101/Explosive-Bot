@@ -10,7 +10,7 @@ from discord.ext import commands
 from cogs.utils import checks
 
 
-class Core:
+class Core(commands.Cog):
     """Core commands"""
 
     def __init__(self, bot):

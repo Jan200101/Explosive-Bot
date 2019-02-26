@@ -5,7 +5,7 @@ from discord.ext import commands
 from cogs.utils import checks
 
 
-class Moderation:
+class Moderation(commands.Cog):
     """
     Moderation commands
     """
