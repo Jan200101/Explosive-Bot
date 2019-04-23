@@ -1,5 +1,7 @@
 from json import load, dump
 
+from typing import Callable
+
 
 class Config(dict):
 
@@ -32,7 +34,7 @@ class Settings():
         with open("data/settings.json", "w") as conf:
             dump(self.settings, conf)
 
-    def setter(func):
+    def setter(func: Callable):
         def wrapper(self, *args, **kwargs):
             func(self, *args, **kwargs)
             self.save()

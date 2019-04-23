@@ -1,13 +1,13 @@
-from aiohttp import ClientSession
 from traceback import format_exception
 from importlib import import_module
 from os import execl
 from sys import argv, executable
-from json import load, dump
+from aiohttp import ClientSession
 from discord.errors import HTTPException
 from discord.ext import commands
 
 from cogs.utils import checks
+from cogs.utils.data import Data
 
 
 class Core(commands.Cog):
@@ -16,9 +16,9 @@ class Core(commands.Cog):
     def __init__(self, bot):
         self.bot = bot
 
-        self.cogs = load(open("data/cogs.json"))
-        self.botmodules = load(open("data/modules.json"))
-        self.config = load(open("data/config.json"))
+        self.cogs = Data("data/cogs.json")
+        self.botmodules = Data("data/modules.json")
+        self.config = Data("data/config.json")
 
     @commands.command(name="cogs")
     @commands.is_owner()
@@ -53,8 +53,7 @@ class Core(commands.Cog):
             self.bot.load_extension("cogs." + cog)
             self.cogs['loaded'].update({cog: "cogs." + cog})
             self.bot.logger.info(cog + " loaded")
-            with open("data/cogs.json", "w") as config:
-                dump(self.cogs, config)
+            self.cogs.save()
             await ctx.send(cog + " loaded")
         except ModuleNotFoundError:
             await ctx.send("Cog not found")
@@ -63,7 +62,8 @@ class Core(commands.Cog):
         except Exception as error:
             self.bot.logger.warn("Failed to load {}: {}".format(cog[0], "".join(
                 format_exception(type(error), error, error.__traceback__))))
-            await ctx.send("A error has occured loading {}\nCheck the console or the logs".format(cog))
+            await ctx.send("A error has occured loading {}\n"
+                           "Check the console or the logs".format(cog))
 
     @commands.command(name="unload")
     @commands.is_owner()
@@ -78,8 +78,7 @@ class Core(commands.Cog):
             self.bot.unload_extension(self.cogs['loaded'][cog])
             self.cogs['loaded'].pop(cog)
             self.bot.logger.info(cog + " unloaded")
-            with open("data/cogs.json", "w") as config:
-                dump(self.cogs, config)
+            self.cogs.save()
             await ctx.send(cog + " unloaded")
         except KeyError:
             self.bot.unload_extension("cogs." + cog)
@@ -105,13 +104,13 @@ class Core(commands.Cog):
             import_module('modules.{}'.format(module)).init()
             self.botmodules['loaded'].append(module)
             self.bot.logger.info(module + " loaded")
-            with open("data/modules.json", "w") as conf:
-                dump(self.botmodules, conf)
+            self.botmodules.save()
             await ctx.send(module + " loaded")
         except Exception as error:
             self.bot.logger.warn("A error occured in {}: {}".format(module, "".join(
                 format_exception(type(error), error, error.__traceback__))))
-            await ctx.send("A error has occured loading {}\nCheck the console or the logs".format(module))
+            await ctx.send("A error has occured loading {}\n"
+                           "Check the console or the logs".format(module))
 
     @modules.group(name="unload")
     @commands.is_owner()
@@ -124,8 +123,7 @@ class Core(commands.Cog):
             self.botmodules['loaded'].remove(module)
             import_module('modules.{}'.format(module)).destroy()
             self.bot.logger.info(module + " unloaded")
-            with open("data/modules.json", "w") as conf:
-                dump(self.botmodules, conf)
+            self.botmodules.save()
             await ctx.send(module + " unloaded")
         except ValueError:
             if module in self.botmodules['all']:
@@ -168,19 +166,17 @@ class Core(commands.Cog):
 
     @settings.command()
     @checks.is_mod()
-    async def avatar(self, ctx, *, URL: str):
+    async def avatar(self, ctx, *, url: str):
         """Change the avatar"""
 
         try:
             session = ClientSession(loop=self.bot.loop)
-            async with session.get(URL) as data:
+            async with session.get(url) as data:
                 image = await data.read()
             await session.close()
             await self.bot.user.edit(avatar=image)
             await ctx.send("Done")
-            self.config['avatar'] = URL
-            with open("data/config.json", "w") as conf:
-                dump(self.config, conf)
+            self.config['avatar'] = url
 
             self.bot.logger.info("Changed avatar")
         except HTTPException:
@@ -249,7 +245,8 @@ class Core(commands.Cog):
     @commands.is_owner()
     async def _global(self, ctx):
         """Change global settings"""
-        if (ctx.invoked_subcommand is None or isinstance(ctx.invoked_subcommand, commands.Group)) and ctx.invoked_subcommand.name and ctx.invoked_subcommand.name == "global":
+        if ((ctx.invoked_subcommand is None or isinstance(ctx.invoked_subcommand, commands.Group))
+                and ctx.invoked_subcommand.name and ctx.invoked_subcommand.name == "global"):
             pages = await self.bot.formatter.format_help_for(ctx, ctx.command)
             for page in pages:
                 await ctx.send(page)
@@ -275,7 +272,8 @@ class Core(commands.Cog):
     async def globalroles(self, ctx):
         """Change global settings"""
 
-        if (ctx.invoked_subcommand is None or isinstance(ctx.invoked_subcommand, commands.Group)) and ctx.invoked_subcommand.name == "roles":
+        if ((ctx.invoked_subcommand is None or isinstance(ctx.invoked_subcommand, commands.Group))
+                and ctx.invoked_subcommand.name == "roles"):
             pages = await self.bot.formatter.format_help_for(ctx, ctx.command)
             for page in pages:
                 await ctx.send(page)

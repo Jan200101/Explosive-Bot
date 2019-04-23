@@ -8,7 +8,7 @@ Explosive-Bot is designed to run standart discord.py scripts or addons and pytho
 
 ## Requirements
 
-To run Explosive-Bot only discord.py 1.0.0a and Python 3.6 or greater is required
+To run Explosive-Bot only discord.py 1.0.0 and Python 3.6 or greater is required
 
 Modules come with their own requirements that need to be installed
 

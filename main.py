@@ -1,5 +1,3 @@
-from cogs.utils.arguments import args
-
 from asyncio import get_event_loop
 from traceback import format_exception
 from importlib import import_module
@@ -7,11 +5,16 @@ from sys import argv, executable
 from os.path import isdir, isfile
 from os import listdir, mkdir, execl
 from json import load, dump
+from json.decoder import JSONDecodeError
+
+from discord import Message
 from discord.errors import LoginFailure
 from discord.ext import commands
 
+from cogs.utils.arguments import args
 from cogs.utils.logger import Logger
 from cogs.utils.settings import Settings
+from cogs.utils.data import Data
 
 try:
     mkdir("data")
@@ -28,7 +31,7 @@ class Bot(commands.Bot):
         super().__init__(*args, command_prefix=self.prefix_manager,
                          pm_help=False, **kwargs)
 
-    def prefix_manager(self, bot, message) -> list:
+    def prefix_manager(self, bot: commands.Bot, message: Message) -> list:
         guild = message.guild
         if not guild:
             guild = None
@@ -125,7 +128,7 @@ async def on_ready():
     else:
         bot.logger.info("Bot started")
 
-    print("{} has started\n"
+    print("{} has started\n\n"
           "{} Servers\n"
           "{} Modules ({} loaded) \n"
           "{} Cogs    ({} loaded)\n"
@@ -135,8 +138,8 @@ async def on_ready():
                     len(cogs['all']), len(cogs['loaded']), bot.oauth_url))
 
 
-def loadmodules() -> dict:
-    botmodules = load(open("data/modules.json"))
+def loadmodules() -> Data:
+    botmodules = Data("data/modules.json")
 
     for module in botmodules['loaded']:
         try:
@@ -150,11 +153,13 @@ def loadmodules() -> dict:
         except Exception as error:
             bot.logger.warn("A error occured in {}: {}".format(module, "".join(
                 format_exception(type(error), error, error.__traceback__))))
+        finally:
+            botmodules.save()
     return botmodules
 
 
-def loadcogs() -> dict:
-    cogs = load(open("data/cogs.json"))
+def loadcogs() -> Data:
+    cogs = Data("data/cogs.json")
 
     for name, cog in cogs['loaded'].copy().items():
         try:
@@ -164,6 +169,8 @@ def loadcogs() -> dict:
             cogs['loaded'].pop(name)
             bot.logger.warn("Failed to load {}: {}".format(name, "".join(
                 format_exception(type(error), error, error.__traceback__))))
+        finally:
+            cogs.save()
     return cogs
 
 
@@ -180,7 +187,7 @@ def prepare():
 def preparemodules():
     try:
         botmodules = load(open("data/modules.json"))
-    except:
+    except (FileNotFoundError, JSONDecodeError):
         botmodules = {"all": [], "loaded": []}
 
         with open("data/modules.json", "w") as conf:
