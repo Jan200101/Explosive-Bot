@@ -49,7 +49,10 @@ class Core(commands.Cog):
         """Load a cog"""
 
         try:
-            self.bot.unload_extension("cogs." + cog)
+            try:
+                self.bot.unload_extension("cogs." + cog)
+            except commands.errors.ExtensionNotLoaded:
+                pass
             self.bot.load_extension("cogs." + cog)
             self.cogs['loaded'].update({cog: "cogs." + cog})
             self.bot.logger.info(cog + " loaded")
