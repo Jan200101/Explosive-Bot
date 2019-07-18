@@ -90,9 +90,7 @@ except (IOError, ValueError):
 @bot.event
 async def on_command_error(ctx, error):
     if isinstance(error, (commands.MissingRequiredArgument, commands.BadArgument)):
-        helpm = await bot.formatter.format_help_for(ctx, ctx.command)
-        for message in helpm:
-            await ctx.send(message)
+        await ctx.send_help(ctx.command)
     elif isinstance(error, commands.errors.CommandOnCooldown):
         await ctx.message.channel.send("{} This command was used {:.2f}s ago and is on "
                                        "cooldown. Try again in {:.2f}s."

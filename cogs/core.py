@@ -78,13 +78,19 @@ class Core(commands.Cog):
             return
 
         try:
-            self.bot.unload_extension(self.cogs['loaded'][cog])
+            try:
+                self.bot.unload_extension(self.cogs['loaded'][cog])
+            except commands.errors.ExtensionNotLoaded:
+                pass
             self.cogs['loaded'].pop(cog)
             self.bot.logger.info(cog + " unloaded")
             self.cogs.save()
             await ctx.send(cog + " unloaded")
         except KeyError:
-            self.bot.unload_extension("cogs." + cog)
+            try:
+                self.bot.unload_extension("cogs." + cog)
+            except commands.errors.ExtensionNotLoaded:
+                pass
             self.bot.logger.info(cog + " unload attempted")
             await ctx.send(cog + " not loaded, attempting unload anyways")
 
@@ -94,9 +100,7 @@ class Core(commands.Cog):
         """Manage bot modules"""
 
         if ctx.invoked_subcommand is None:
-            pages = await self.bot.formatter.format_help_for(ctx, ctx.command)
-            for page in pages:
-                await ctx.send(page)
+            await ctx.send_help(ctx.command)
 
     @modules.group(name="load")
     @commands.is_owner()
