@@ -167,9 +167,7 @@ class Core(commands.Cog):
         """Change bot setting"""
 
         if ctx.invoked_subcommand is None:
-            pages = await self.bot.formatter.format_help_for(ctx, ctx.command)
-            for page in pages:
-                await ctx.send(page)
+            await ctx.send_help(ctx.command)
 
     @settings.command()
     @checks.is_mod()
